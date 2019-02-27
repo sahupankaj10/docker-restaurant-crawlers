@@ -8,7 +8,7 @@ from scrapy_redis.spiders import RedisSpider
 from scrapy.http.request.form import FormRequest
 from kuchikomi.items.tabelog_items import KuchikomiTabelogItem
 
-class TabelogUserSpider(scrapy.Spider):
+class TabelogKuchikomiSpider(scrapy.Spider):
     start_urls = ['https://tabelog.com/tokyo/A1307/A130701/13124391/dtlrvwlst']
     domain_name = 'https://tabelog.com'
 
