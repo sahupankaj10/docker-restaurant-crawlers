@@ -6,14 +6,14 @@ from math import ceil
 from time import strftime
 from scrapy_redis.spiders import RedisSpider
 from scrapy.http.request.form import FormRequest
-from kuchikomi.items.tabelog_items import KuchikomiTabelogItem
+from kuchikomi.items.tabelog_items import UserTabelogItem
 
 class TabelogUserSpider(scrapy.Spider):
     start_urls = ['https://tabelog.com/tokyo/A1307/A130701/13124391/dtlrvwlst']
     domain_name = 'https://tabelog.com'
 
-    name = "tabelog_kuchikomi"
-    redis_key = "tabelog_kuchikomi"
+    name = "tabelog_user"
+    redis_key = "tabelog_user"
 
     # analyze
     def parse(self, response):
@@ -27,7 +27,7 @@ class TabelogUserSpider(scrapy.Spider):
         items = dict()
         counter = 1
         for sel_response in response.css('div > div.rvw-item'):
-            item = KuchikomiTabelogItem()
+            item = UserTabelogItem()
             item['get_url'] = self.domain_name + sel_response.css('div::attr("data-detail-url")').extract_first()
             item['hotel_id'] = re.search(r'[0-9]+(?=/dtlrvwlst)', response.url).group()
             item['kuchikomi_id'] = re.search(r'(?<=dtlrvwlst/)([0-9A-Za-z]+)', item['get_url']).group()

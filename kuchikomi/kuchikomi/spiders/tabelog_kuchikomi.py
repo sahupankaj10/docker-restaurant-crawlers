@@ -1,9 +1,8 @@
 # -*- coding: utf-8 -*-
 import re
-import time
+import json
 import scrapy
 from math import ceil
-from time import strftime
 from scrapy_redis.spiders import RedisSpider
 from scrapy.http.request.form import FormRequest
 from kuchikomi.items.tabelog_items import KuchikomiTabelogItem
@@ -24,21 +23,24 @@ class TabelogKuchikomiSpider(scrapy.Spider):
             yield FormRequest(target_url, method='GET', meta=response.meta, callback=self.parse_detail)
 
     def parse_detail(self, response):
+        for sel_response in response.css('div > div.rvw-item'):
+            comment_url = sel_response.css('p.rvw-item__title a::attr("href")').extract_first()
+            target_url = self.domain_name + str(comment_url)
+            yield FormRequest(target_url, method='GET', meta=response.meta, callback=self.parse_comment)
+
+    def parse_comment(self, response):
         items = dict()
         counter = 1
         for sel_response in response.css('div > div.rvw-item'):
             item = KuchikomiTabelogItem()
-            item['get_url'] = self.domain_name + sel_response.css('div::attr("data-detail-url")').extract_first()
+            item['get_url'] = response.url
             item['hotel_id'] = re.search(r'[0-9]+(?=/dtlrvwlst)', response.url).group()
-            item['kuchikomi_id'] = re.search(r'(?<=dtlrvwlst/)([0-9A-Za-z]+)', item['get_url']).group()
 
             for sel_data in sel_response.css('div.rvw-item__rvwr-data'):
                 item['customer_id'] = sel_data.css("p.rvw-item__rvwr-name a::attr('href')").re_first('rvwr/([0-9A-Za-z]+)/')
                 item['customer_name'] = sel_data.css("p.rvw-item__rvwr-name a > span > span::text").extract_first()
 
             for sel_info in sel_response.css('div.rvw-item__rvw-info'):
-                number_of_visit = sel_info.css("div.rvw-item__visit-count span::text").extract()
-                item['number_of_visit'] = ''.join(number_of_visit)
                 for sel in sel_info.css("ul.rvw-item__ratings > li"):
                     list_class = sel.css('li::attr("class")').extract_first()
                     if 'rvw-item__ratings-item' in list_class:
@@ -66,6 +68,15 @@ class TabelogKuchikomiSpider(scrapy.Spider):
                             if 'lunch' in time_class:
                                 item['day_amount'] = food_time_amount[index]
 
+            for index,sel_contents in enumerate(sel_response.css('div.rvw-item__review-contents-wrap .rvw-item__review-contents')):
+                if index == 0:
+                    item['kuchikomi_id'] = sel_contents.css('div.rvw-item__review-contents::attr("id")').extract_first()
+                    item['review_date'] = sel_contents.css('div.rvw-item__single-date p::text').re_first(r'\S+')
+                    item['review_title'] = sel_contents.css('p.rvw-item__title strong::text').extract_first()
+                    review_comment = sel_contents.css('div.rvw-item__rvw-comment p::text').extract()
+                    item['review_comment'] = re.sub(r'\s+', '', ''.join(review_comment))
+                    review_liked_filter = sel_contents.css('div.rvw-item__contents-footer div.js-like-source::text').extract_first()
+                    item['review_liked'] = json.loads(review_liked_filter)['count']
             items[counter] = item
             counter = counter+1
         yield items
