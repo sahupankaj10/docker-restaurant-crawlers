@@ -14,6 +14,9 @@ BOT_NAME = 'kuchikomi'
 SPIDER_MODULES = ['kuchikomi.spiders']
 NEWSPIDER_MODULE = 'kuchikomi.spiders'
 
+# Redis host setting
+REDIS_HOST = '127.0.0.1'
+REDIS_PORT = '6379'
 
 # Crawl responsibly by identifying yourself (and your website) on the user-agent
 #USER_AGENT = 'kuchikomi (+http://www.yourdomain.com)'
@@ -64,9 +67,9 @@ ROBOTSTXT_OBEY = True
 
 # Configure item pipelines
 # See https://doc.scrapy.org/en/latest/topics/item-pipeline.html
-#ITEM_PIPELINES = {
-#    'kuchikomi.pipelines.KuchikomiPipeline': 300,
-#}
+ITEM_PIPELINES = {
+   'kuchikomi.pipelines.KuchikomiPipeline': 300,
+}
 
 # Enable and configure the AutoThrottle extension (disabled by default)
 # See https://doc.scrapy.org/en/latest/topics/autothrottle.html

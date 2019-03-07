@@ -1,14 +1,13 @@
 # -*- coding: utf-8 -*-
 import re
 import json
-import scrapy
 from math import ceil
 from scrapy_redis.spiders import RedisSpider
 from scrapy.http.request.form import FormRequest
 from kuchikomi.items.tabelog_items import KuchikomiTabelogItem
 
-class TabelogKuchikomiSpider(scrapy.Spider):
-    start_urls = ['https://tabelog.com/tokyo/A1307/A130701/13124391/dtlrvwlst']
+
+class TabelogKuchikomiSpider(RedisSpider):
     domain_name = 'https://tabelog.com'
 
     name = "tabelog_kuchikomi"
@@ -25,8 +24,9 @@ class TabelogKuchikomiSpider(scrapy.Spider):
     def parse_detail(self, response):
         for sel_response in response.css('div > div.rvw-item'):
             comment_url = sel_response.css('p.rvw-item__title a::attr("href")').extract_first()
-            target_url = self.domain_name + str(comment_url)
-            yield FormRequest(target_url, method='GET', meta=response.meta, callback=self.parse_comment)
+            if comment_url is not None:
+                target_url = self.domain_name + str(comment_url)
+                yield FormRequest(target_url, method='GET', meta=response.meta, callback=self.parse_comment)
 
     def parse_comment(self, response):
         items = dict()

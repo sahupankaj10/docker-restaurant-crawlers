@@ -1,15 +1,12 @@
 # -*- coding: utf-8 -*-
 import re
-import time
-import scrapy
 from math import ceil
-from time import strftime
 from scrapy_redis.spiders import RedisSpider
 from scrapy.http.request.form import FormRequest
 from kuchikomi.items.tabelog_items import UserTabelogItem
 
-class TabelogUserSpider(scrapy.Spider):
-    start_urls = ['https://tabelog.com/tokyo/A1307/A130701/13124391/dtlrvwlst']
+
+class TabelogUserSpider(RedisSpider):
     domain_name = 'https://tabelog.com'
 
     name = "tabelog_user"

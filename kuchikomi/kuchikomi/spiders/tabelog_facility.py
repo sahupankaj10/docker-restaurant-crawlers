@@ -1,16 +1,11 @@
 # -*- coding: utf-8 -*-
 import re
-import json
-import scrapy
 from urllib.parse import urlparse
-from math import ceil
 from scrapy_redis.spiders import RedisSpider
-from scrapy.http.request.form import FormRequest
 from kuchikomi.items.tabelog_items import FacilityTabelogItem
 
-class TabelogFacilitySpider(scrapy.Spider):
-    start_urls = ['https://tabelog.com/tokyo/A1307/A130701/13019207/']
 
+class TabelogFacilitySpider(RedisSpider):
     name = "tabelog_facility"
     redis_key = "tabelog_facility"
 
@@ -18,6 +13,7 @@ class TabelogFacilitySpider(scrapy.Spider):
     def parse(self, response):
         path = urlparse(response.url).path
         path_list = re.split('/', path)
+        items = {}
 
         item = FacilityTabelogItem()
         item['get_url'] = response.url
@@ -50,7 +46,6 @@ class TabelogFacilitySpider(scrapy.Spider):
 
         for sel_data in response.css('div.rdheader-info-box '):
             item['nearest_station'] = sel_data.css('.rdheader-subinfo__item--station span::text').extract_first()
-            item['genre'] = sel_data.css('div:first-child.rdheader-subinfo dl.rdheader-subinfo__item a span::text').extract()[1]
             for sel_price in sel_data.css('div.rdheader-subinfo:nth-child(2)'):
                 food_time_class = sel_price.css('dl:first-child div.rdheader-budget p::attr("class")').extract()
                 food_time_amount = sel_price.css('dl:first-child div.rdheader-budget a.rdheader-budget__price-target::text').extract()
@@ -59,11 +54,14 @@ class TabelogFacilitySpider(scrapy.Spider):
                         item['night_budget'] = food_time_amount[index]
                     if 'lunch' in food_time_class:
                         item['day_budget'] = food_time_amount[index]
-                item['regular_holiday'] = sel_price.css('dl:nth-child(2) dd.rdheader-subinfo__closed-text::text').extract_first().strip()
+                regular_holiday = sel_price.css('dl:nth-child(2) dd.rdheader-subinfo__closed-text::text').extract_first()
+                item['regular_holiday'] = regular_holiday.strip() if regular_holiday is not None else 'null'
 
         for sel_table in response.css('div.rstinfo-table table:nth-child(2) tr'):
             if sel_table.css('th::text').extract_first() in '受賞・選出歴':
                 item['awards_selection_history'] = self.format_list(sel_table.css('td p::text').extract())
+            if sel_table.css('th::text').extract_first() in 'ジャンル':
+                item['genre'] = self.format_list(sel_table.css('td span::text').extract())
             elif sel_table.css('th::text').extract_first().strip() in '予約・お問い合わせ':
                 item['reservation_inquiry'] = self.format_list(sel_table.css('.rstinfo-table__tel-num::text').extract())
             elif sel_table.css('th::text').extract_first().strip() in '予約可否':
@@ -123,7 +121,8 @@ class TabelogFacilitySpider(scrapy.Spider):
             elif sel_table.css('th::text').extract_first().strip() in '初投稿者':
                 item['original_contributor'] = self.format_list(sel_table.css('td p span::text').extract())
 
-        yield item
+        items[1] = item
+        yield items
 
     @staticmethod
     def format_list(text_list):
