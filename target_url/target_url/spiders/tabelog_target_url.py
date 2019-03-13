@@ -35,24 +35,24 @@ class TabelogTargetUrlSpider(scrapy.Spider):
             prefecture_sub_area = sel_prefecture_area.css('a::attr("href")').extract_first()
             if prefecture_sub_area is not None:
                 target_url = prefecture_sub_area
-                yield FormRequest(target_url, method='GET', meta=response.meta, callback=self.parse_prefecture_area_hotel)
+                yield FormRequest(target_url, method='GET', meta=response.meta, callback=self.parse_prefecture_area_restaurant)
 
-    def parse_prefecture_area_hotel(self, response):
+    def parse_prefecture_area_restaurant(self, response):
         total_kuchikomi = response.css('span:last-child.c-page-count__num>strong::text').extract_first()
         number_of_pages = ceil(int(total_kuchikomi) / 20)
         for page in range(1, number_of_pages + 1):
             target_url = response.url + "rstLst/{}/".format(str(page))
-            yield FormRequest(target_url, method='GET', meta=response.meta, callback=self.parse_hotel_url)
+            yield FormRequest(target_url, method='GET', meta=response.meta, callback=self.parse_restaurant_url)
 
-    def parse_hotel_url(self, response):
+    def parse_restaurant_url(self, response):
         url_list = dict()
         count = 1
-        for sel_hotel_list in response.css('ul.rstlist-info li.list-rst'):
-            hotel_url = sel_hotel_list.css('li.list-rst::attr("data-detail-url")').extract_first()
-            hotel_id = sel_hotel_list.css('li.list-rst::attr("data-detail-url")').extract_first()
+        for sel_restaurant_list in response.css('ul.rstlist-info li.list-rst'):
+            restaurant_url = sel_restaurant_list.css('li.list-rst::attr("data-detail-url")').extract_first()
+            restaurant_id = sel_restaurant_list.css('li.list-rst::attr("data-detail-url")').extract_first()
 
-            url_json = '{"url":"' + str(hotel_url) + '", "hotel_id": "'+ str(hotel_id) + '"}'
-            url_json_kuchikomi = '{"url":"' + str(hotel_url+'dtlrvwlst') + '", "hotel_id": "'+ str(hotel_id) + '"}'
+            url_json = '{"url":"' + str(restaurant_url) + '", "restaurant_id": "'+ str(restaurant_id) + '"}'
+            url_json_kuchikomi = '{"url":"' + str(restaurant_url+'dtlrvwlst') + '", "restaurant_id": "'+ str(restaurant_id) + '"}'
 
             self.redis_db.rpush(self.redis_key_facility, url_json)
             self.redis_db.rpush(self.redis_key_kuchikomi, url_json_kuchikomi)
