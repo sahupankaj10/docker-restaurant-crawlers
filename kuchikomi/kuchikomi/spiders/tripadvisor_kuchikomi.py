@@ -1,21 +1,19 @@
 # -*- coding: utf-8 -*-
 import re
 import time
-import scrapy
-from math import ceil
 from time import strftime
-from scrapy.exceptions import CloseSpider
-from scrapy_redis.spiders import RedisSpider
-from scrapy.http.request.form import FormRequest
+
 from kuchikomi.items.tripadvisor_items import KuchikomiTripAdvisorItem
+from scrapy.http.request.form import FormRequest
+from scrapy_redis.spiders import RedisSpider
 
 
-class TripadvisorRestarentKuchikomiSpider(RedisSpider):
+class TripAdvisorRestaurantKuchikomiSpider(RedisSpider):
     custom_settings = {
-        "DOWNLOADER_MIDDLEWARES": {
+        "DOWNLOADER_MIDDLEWARES"  : {
             'scrapy.downloadermiddlewares.cookies.CookiesMiddleware': 700,
         },
-        "DOWNLOAD_DELAY" : .5,
+        "DOWNLOAD_DELAY"          : .5,
         "RANDOMIZE_DOWNLOAD_DELAY": True
     }
 
@@ -33,26 +31,29 @@ class TripadvisorRestarentKuchikomiSpider(RedisSpider):
     # analyze
     def parse(self, response):
         temp_all = response.headers.getlist('Set-Cookie')
-        cookie_TASession = ''
+        cookie_ta_session = ''
         for cookie in temp_all:
             if "TASession" in str(cookie):
                 temp = cookie
                 temp = temp.decode('utf-8')
                 temp = temp.replace('TRA.true', 'TRA.false')
                 match = re.search('TASession=(.*?)Domain=', temp)
-                cookie_TASession = match.groups()[0]
-                cookie_TASession = cookie_TASession.replace('ja', 'ALL')
+                cookie_ta_session = match.groups()[0]
+                cookie_ta_session = cookie_ta_session.replace('ja', 'ALL')
 
-        yield FormRequest(response.url,
-              method='GET',
-              headers={'Accept-Encoding': 'gzip, deflate, sdch',
-                       'Content-Type'   : 'text/html; charset=UTF-8',
-                       'User-Agent'     : 'Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 '
-                                          '(KHTML, like Gecko) Chrome/55.0.2883.87 Safari/537.36',
-                       },
-              meta=response.meta,
-              cookies={'TASession': cookie_TASession, 'TALanguage': 'ALL'},
-              callback=self.parse_review_list)
+        yield FormRequest(
+            response.url,
+            method='GET',
+            headers={
+                'Accept-Encoding': 'gzip, deflate, sdch',
+                'Content-Type'   : 'text/html; charset=UTF-8',
+                'User-Agent'     : 'Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 '
+                                   '(KHTML, like Gecko) Chrome/55.0.2883.87 Safari/537.36',
+            },
+            meta=response.meta,
+            cookies={'TASession': cookie_ta_session, 'TALanguage': 'ALL'},
+            callback=self.parse_review_list)
+
     # analyze
     def parse_review_list(self, response):
         for counter, sel in enumerate(response.xpath('.//*[@class="reviewSelector"]')):
@@ -111,7 +112,7 @@ class TripadvisorRestarentKuchikomiSpider(RedisSpider):
 
             for sel_scores in sel.css('div.rating-list ul.recommend-column li.recommend-answer'):
                 score = sel_scores.css('div.ui_bubble_rating::attr("class")').re_first('\d+')
-                score = int(score)/10
+                score = int(score) / 10
                 score_name = sel_scores.css('div.recommend-description::text').extract_first()
                 if '食事' in score_name:
                     item['food_score'] = float(score)

@@ -32,7 +32,7 @@ class TabelogFacilitySpider(RedisSpider):
         item['overall_rating'] = response.css('ul.rdheader-counts b[rel$="v:rating"] span::text').extract_first()
 
         for sel_data in response.css('ul.rdheader-counts '):
-            item['overall_rating'] = sel_data.css("li:nth-child(1) b[rel$='v:rating']  span::text").extract_first()
+            item['overall_rating'] = sel_data.css("li:nth-child(1) b[rel$='v:rating'] span::text").extract_first()
             for rating_class in sel_data.css("li:nth-child(1) div.rdheader-rating__time span"):
                 check_class = rating_class.css("span::attr('class')").extract_first()
                 rating_value = sel_data.css("span em::text").extract_first()
@@ -60,7 +60,7 @@ class TabelogFacilitySpider(RedisSpider):
         for sel_table in response.css('div.rstinfo-table table:nth-child(2) tr'):
             if sel_table.css('th::text').extract_first() in '受賞・選出歴':
                 item['awards_selection_history'] = self.format_list(sel_table.css('td p::text').extract())
-            if sel_table.css('th::text').extract_first() in 'ジャンル':
+            elif sel_table.css('th::text').extract_first() in 'ジャンル':
                 item['genre'] = self.format_list(sel_table.css('td span::text').extract())
             elif sel_table.css('th::text').extract_first().strip() in '予約・お問い合わせ':
                 item['reservation_inquiry'] = self.format_list(sel_table.css('.rstinfo-table__tel-num::text').extract())

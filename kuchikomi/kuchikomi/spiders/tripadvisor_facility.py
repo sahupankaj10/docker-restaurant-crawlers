@@ -1,24 +1,20 @@
 # -*- coding: utf-8 -*-
-import re
-import time
-import scrapy
 import base64
 import json
-from math import ceil
-from time import strftime
-from scrapy.exceptions import CloseSpider
-from scrapy_redis.spiders import RedisSpider
-from scrapy.http.request.form import FormRequest
+import re
+
 from bs4 import BeautifulSoup
 from kuchikomi.items.tripadvisor_items import FacilityTripAdvisorItem
+from scrapy.http.request.form import FormRequest
+from scrapy_redis.spiders import RedisSpider
 
 
-class TripadvisorFacilitySpider(RedisSpider):
+class TripAdvisorFacilitySpider(RedisSpider):
     custom_settings = {
-        "DOWNLOADER_MIDDLEWARES": {
+        "DOWNLOADER_MIDDLEWARES"  : {
             'scrapy.downloadermiddlewares.cookies.CookiesMiddleware': 700,
         },
-        "DOWNLOAD_DELAY" : .5,
+        "DOWNLOAD_DELAY"          : .5,
         "RANDOMIZE_DOWNLOAD_DELAY": True
     }
 
@@ -44,15 +40,15 @@ class TripadvisorFacilitySpider(RedisSpider):
                 cookie_TASession = cookie_TASession.replace('ja', 'ALL')
 
         yield FormRequest(response.url,
-              method='GET',
-              headers={'Accept-Encoding': 'gzip, deflate, sdch',
-                       'Content-Type'   : 'text/html; charset=UTF-8',
-                       'User-Agent'     : 'Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 '
-                                          '(KHTML, like Gecko) Chrome/55.0.2883.87 Safari/537.36',
-                       },
-              meta=response.meta,
-              cookies={'TASession': cookie_TASession, 'TALanguage': 'ALL'},
-              callback=self.parse_details)
+                          method='GET',
+                          headers={'Accept-Encoding': 'gzip, deflate, sdch',
+                                   'Content-Type'   : 'text/html; charset=UTF-8',
+                                   'User-Agent'     : 'Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 '
+                                                      '(KHTML, like Gecko) Chrome/55.0.2883.87 Safari/537.36',
+                                   },
+                          meta=response.meta,
+                          cookies={'TASession': cookie_TASession, 'TALanguage': 'ALL'},
+                          callback=self.parse_details)
 
     def parse_details(self, response):
         items = dict()
@@ -69,7 +65,7 @@ class TripadvisorFacilitySpider(RedisSpider):
         item['area'] = ';'.join(area)
 
         overall_rating = response.css('div.ratingContainer span.ui_bubble_rating::attr(class)').re_first('bubble_(\d+)')
-        item['overall_rating'] = int(overall_rating)/10
+        item['overall_rating'] = int(overall_rating) / 10
         review_count = response.css('span.reviewCount::text').re_first('\d+')
         item['number_of_reviews'] = float(review_count) if review_count is not None else 'null'
 
@@ -84,12 +80,14 @@ class TripadvisorFacilitySpider(RedisSpider):
         item['phone_number'] = response.css('div.phone span.detail ::text').extract_first()
 
         item['number_of_photos'] = response.css('.mosaic_photos span.details ::text').re_first('\d+')
-        item['award'] = response.css('div[class^="restaurants-detail-overview-cards-RatingsOverviewCard__award"] ::text').extract_first()
+        item['award'] = response.css(
+            'div[class^="restaurants-detail-overview-cards-RatingsOverviewCard__award"] ::text').extract_first()
 
-        for sel in response.css('div[class^="restaurants-detail-overview-cards-RatingsOverviewCard__ratingQuestionRow--"] '):
+        for sel in response.css(
+                'div[class^="restaurants-detail-overview-cards-RatingsOverviewCard__ratingQuestionRow--"] '):
             score_name = sel.css('::text').extract_first()
             score = sel.css('.ui_bubble_rating::attr("class")').re_first('\d+')
-            score = int(score)/10
+            score = int(score) / 10
             if '食事' in score_name:
                 item['food_score'] = float(score)
             elif '雰囲気' in score_name:
@@ -102,8 +100,10 @@ class TripadvisorFacilitySpider(RedisSpider):
         script_basic_info = response.css('script[type="application/ld+json"]::text').extract_first()
         basic_info = json.loads(script_basic_info)
 
-        class_for = response.css('div[class^="restaurants-detail-overview-cards-DetailsSectionOverviewCard__tagText"]::text').extract()
-        class_text = response.css('div[class^="restaurants-detail-overview-cards-DetailsSectionOverviewCard__tagText"]::text').extract()
+        class_for = response.css(
+            'div[class^="restaurants-detail-overview-cards-DetailsSectionOverviewCard__tagText"]::text').extract()
+        class_text = response.css(
+            'div[class^="restaurants-detail-overview-cards-DetailsSectionOverviewCard__tagText"]::text').extract()
         for index, cls in enumerate(class_for):
             if '料理' in cls:
                 item['cuisine'] = class_text[index]
@@ -114,10 +114,15 @@ class TripadvisorFacilitySpider(RedisSpider):
             elif '機能' in class_for:
                 item['function'] = class_text[index]
 
-        item['location'] = response.css('div[class^="restaurants-detail-overview-cards-LocationOverviewCard__addressLink"] :first-child::text').get(default="null")
-        item['nearest_area'] = response.css('div[class^="restaurants-detail-overview-cards-LocationOverviewCard__addressLink"] :last-child::text').get(default="null")
+        item['location'] = response.css(
+            'div[class^="restaurants-detail-overview-cards-LocationOverviewCard__addressLink"] :first-child::text').get(
+            default="null")
+        item['nearest_area'] = response.css(
+            'div[class^="restaurants-detail-overview-cards-LocationOverviewCard__addressLink"] :last-child::text').get(
+            default="null")
 
-        official_site = response.css('div[class^="restaurants-detail-overview-cards-LocationOverviewCard__contactRow"] div::attr("data-encoded-url")').get()
+        official_site = response.css(
+            'div[class^="restaurants-detail-overview-cards-LocationOverviewCard__contactRow"] div::attr("data-encoded-url")').get()
         if official_site is not None:
             decoded_url = base64.b64decode(official_site)
             item['official_site'] = re.findall('_(.*?)_', BeautifulSoup(decoded_url, 'html.parser').text)[0]

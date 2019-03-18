@@ -20,7 +20,7 @@ class TripadvisorTargetUrlSpider(scrapy.Spider):
         # pagination
         page_number = response.css('div.pageNumbers a:last-child::attr(data-page-number)').extract_first()
         total_page = int(page_number) + 1
-        for i in range(1, 2):
+        for i in range(1, total_page):
             if i == 1:
                 for sel in response.css('div.geo_wrap'):
                     detail_url = sel.css('a::attr(href)').extract_first()
@@ -54,7 +54,7 @@ class TripadvisorTargetUrlSpider(scrapy.Spider):
         page_number = response.css('div.pageNumbers a:last-child::attr(data-page-number)').extract_first()
         area_code = re.search('(?<=g)(\d+)', response.url).group()
         total_page = int(page_number) + 1
-        for i in range(1, 2):
+        for i in range(1, total_page):
             data_offset += 30 if i > 1 else 0
             page_url = self.get_pagination_url(area_code, data_offset)
             urls.append(page_url)
