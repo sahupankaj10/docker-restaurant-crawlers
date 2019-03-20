@@ -4,13 +4,13 @@
 #
 # Don't forget to add your pipeline to the ITEM_PIPELINES setting
 # See: https://doc.scrapy.org/en/latest/topics/item-pipeline.html
-import csv, sys
+import csv
 from kuchikomi.items.tabelog_items import FacilityTabelogItem, KuchikomiTabelogItem, UserTabelogItem
 from kuchikomi.items.tripadvisor_items import KuchikomiTripAdvisorItem, FacilityTripAdvisorItem
 from kuchikomi.items.retty_items import KuchikomiRettyItem, FacilityRettyItem
 
 
-class KuchikomiPipeline(object):
+class TsvExporterPipeline(object):
     def process_item(self, item, spider):
         item_fields = ''
         if 'tabelog' in spider.name:
