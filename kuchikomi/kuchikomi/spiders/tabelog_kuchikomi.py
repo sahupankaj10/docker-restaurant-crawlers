@@ -72,7 +72,7 @@ class TabelogKuchikomiSpider(RedisSpider):
                 if index == 0:
                     item['kuchikomi_id'] = sel_contents.css('div.rvw-item__review-contents::attr("id")').extract_first()
                     item['review_date'] = sel_contents.css('div.rvw-item__single-date p::text').re_first(r'\S+')
-                    item['review_title'] = sel_contents.css('p.rvw-item__title strong::text').extract_first()
+                    item['review_title'] = sel_contents.css('p.rvw-item__title strong::text').get(default='').strip()
                     review_comment = sel_contents.css('div.rvw-item__rvw-comment p::text').extract()
                     item['review_comment'] = re.sub(r'\s+', '', ''.join(review_comment))
                     review_liked_filter = sel_contents.css('div.rvw-item__contents-footer div.js-like-source::text').extract_first()
