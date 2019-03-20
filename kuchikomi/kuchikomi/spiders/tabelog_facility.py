@@ -22,9 +22,9 @@ class TabelogFacilitySpider(RedisSpider):
         item['url_area2'] = path_list[3]
         item['hotel_id'] = path_list[4]
 
-        title_list = response.css('div#location-breadcrumbs-wrap a span[itemprop="title"]::text').extract()
-        title_list = title_list.pop(0)
-        item['area'] = ''.join(title_list)
+        title_list = response.css('div#location-breadcrumbs-wrap span::text').extract()
+        title_list = title_list[2:]
+        item['area'] = ';'.join(title_list)
 
         item['pillow'] = response.css('div.rdheader-rstname span.pillow-word::text').extract_first()
         item['store_name'] = self.format_list(response.css('div.rdheader-rstname span::text').extract())
@@ -67,7 +67,7 @@ class TabelogFacilitySpider(RedisSpider):
             elif sel_table.css('th::text').extract_first().strip() in '予約可否':
                 item['reservation_acceptability'] = self.format_list(sel_table.css('.rstinfo-table__reserve-status::text').extract())
             elif sel_table.css('th::text').extract_first().strip() in '住所':
-                item['street_address'] = self.format_list(sel_table.css('.rstinfo-table__address::text').extract())
+                item['street_address'] = self.format_list(sel_table.css('.rstinfo-table__address ::text').extract())
             elif sel_table.css('th::text').extract_first().strip() in '交通手段':
                 item['transportation'] = self.format_list(sel_table.css('td p::text').extract())
             elif sel_table.css('th::text').extract_first().strip() in '営業時間':
@@ -83,7 +83,7 @@ class TabelogFacilitySpider(RedisSpider):
             elif sel_table.css('th::text').extract_first().strip() in '貸切':
                 item['reserved'] = self.format_list(sel_table.css('td p::text').extract())
             elif sel_table.css('th::text').extract_first().strip() in '禁煙・喫煙':
-                item['smoking'] = self.format_list(sel_table.css('td p::text').extract())
+                item['smoking'] = self.format_list(sel_table.css('td ::text').extract())
             elif sel_table.css('th::text').extract_first().strip() in '駐車場':
                 item['parking'] = self.format_list(sel_table.css('td p::text').extract())
             elif sel_table.css('th::text').extract_first().strip() in '空間・設備':
