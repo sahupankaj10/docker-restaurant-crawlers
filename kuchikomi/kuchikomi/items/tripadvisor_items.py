@@ -63,8 +63,8 @@ class FacilityTripAdvisorItem(scrapy.Item):
     average_score       = scrapy.Field()
     bad_score           = scrapy.Field()
     very_bad_score      = scrapy.Field()
-    review_in_english   = scrapy.Field()
-    review_in_japanese  = scrapy.Field()
+    reviews_in_english   = scrapy.Field()
+    reviews_in_japanese  = scrapy.Field()
 
     details             = scrapy.Field()
     travelers_type_family    = scrapy.Field()

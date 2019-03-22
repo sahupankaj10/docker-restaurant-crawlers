@@ -76,22 +76,22 @@ class TripAdvisorRestaurantKuchikomiSpider(RedisSpider):
             item['facility_id'] = response.meta['facility_id']
             item['get_url'] = response.url
 
-            item['review_id'] = sel.css('::attr(data-reviewid)').extract_first()
-            item['title'] = sel.css('span.noQuotes::text').extract_first()
+            item['review_id'] = sel.css('::attr(data-reviewid)').get(default='null').strip()
+            item['title'] = sel.css('span.noQuotes::text').get(default='null').strip()
 
-            post_date_temp = sel.css('span.ratingDate::attr(title)').extract_first()
+            post_date_temp = sel.css('span.ratingDate::attr(title)').get(default='null').strip()
             if post_date_temp is not None:
                 post_date_temp = time.strptime(post_date_temp, "%Y年%m月%d日")
                 item['post_date'] = strftime("%Y-%m-%d", post_date_temp)
 
-            stay_date_temp = sel.css('div.prw_reviews_stay_date_hsx::text').extract_first()
+            stay_date_temp = sel.css('div.prw_reviews_stay_date_hsx::text').get(default='null').strip()
             if stay_date_temp is not None:
                 stay_date_temp = time.strptime(stay_date_temp, "%Y年%m月")
                 item['stay_time'] = strftime("%Y-%m", stay_date_temp)
 
             for sel_m_info in sel.css('div.member_info'):
-                item['post_area'] = sel_m_info.css('div.location span::text').extract_first()
-                item['reviewer_name'] = sel_m_info.css('div.username span::text').extract_first()
+                item['post_area'] = sel_m_info.css('div.location span::text').get(default='null')
+                item['reviewer_name'] = sel_m_info.css('div.username span::text').get(default='null').strip()
                 class_name = sel_m_info.css('div.memberBadgingNoText span.ui_icon::attr("class")').extract()
                 budge_text = sel_m_info.css('div.memberBadgingNoText span.badgetext::text').extract()
                 for index, ui_class in enumerate(class_name):
@@ -103,7 +103,7 @@ class TripAdvisorRestaurantKuchikomiSpider(RedisSpider):
             comment = sel.css('div.entry p::text').extract()
             item['review'] = re.sub(r'\s+', '', ''.join(comment))
 
-            temp = sel.css('div.reviewItemInline span::attr(class)').extract_first()
+            temp = sel.css('div.reviewItemInline span::attr(class)').get(default='null').strip()
             if temp is not None:
                 match = re.search(' bubble_(.*?)0', temp)
                 if match:
@@ -113,7 +113,7 @@ class TripAdvisorRestaurantKuchikomiSpider(RedisSpider):
             for sel_scores in sel.css('div.rating-list ul.recommend-column li.recommend-answer'):
                 score = sel_scores.css('div.ui_bubble_rating::attr("class")').re_first('\d+')
                 score = int(score) / 10
-                score_name = sel_scores.css('div.recommend-description::text').extract_first()
+                score_name = sel_scores.css('div.recommend-description::text').get(default='null').strip()
                 if '食事' in score_name:
                     item['food_score'] = float(score)
                 elif '雰囲気' in score_name:
@@ -123,7 +123,7 @@ class TripAdvisorRestaurantKuchikomiSpider(RedisSpider):
                 elif 'サービス' in score_name:
                     item['service_score'] = float(score)
 
-            post_useful = sel.css('.numHelp::text').extract_first()
+            post_useful = sel.css('.numHelp::text').get(default='null').strip()
             item['post_useful'] = post_useful.strip() if post_useful is not None else 'null'
 
             items[counter] = item

@@ -4,7 +4,8 @@
 #
 # Don't forget to add your pipeline to the ITEM_PIPELINES setting
 # See: https://doc.scrapy.org/en/latest/topics/item-pipeline.html
-import csv, sys
+
+import csv
 from kuchikomi.items.tabelog_items import FacilityTabelogItem, KuchikomiTabelogItem, UserTabelogItem
 from kuchikomi.items.tripadvisor_items import KuchikomiTripAdvisorItem, FacilityTripAdvisorItem
 from kuchikomi.items.retty_items import KuchikomiRettyItem, FacilityRettyItem
@@ -39,6 +40,8 @@ class KuchikomiPipeline(object):
             if out_file.tell() == 0:
                 tsv_writer.writeheader()
             tsv_writer.writerows(formatted_item)
+
+        return item
 
     def get_formatted_item(self, item, item_class):
         z_key = {}

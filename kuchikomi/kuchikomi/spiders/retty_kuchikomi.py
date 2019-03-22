@@ -39,10 +39,10 @@ class RettyKuchikomiSpider(RedisSpider):
             item['overall_score'] = re.findall('--(\w+)', score_class)[0]
 
             tags = sel_response.css('div.restaurant-report__tags > ul > li a::text').getall()
-            item['tags'] = ';'.join(tags)
+            item['tags'] = ';'.join(tags) if len(tags) > 0 else 'null'
 
             review = sel_response.css('p.restaurant-report__text span::text').getall()
-            item['review'] = re.sub(r'\s+', '', ''.join(review))
+            item['review_comment'] = re.sub(r'\s+', '', ''.join(review))
 
             item['review_date'] = sel_response.css('time.restaurant-report__date span::text').get()
             item['num_of_likes'] = sel_response.css('button.report-reaction__button--like + span::text').get()
