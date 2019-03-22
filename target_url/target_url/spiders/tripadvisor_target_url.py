@@ -63,8 +63,6 @@ class TripadvisorTargetUrlSpider(scrapy.Spider):
             yield scrapy.Request(url, callback=self.parse_restaurant_url, meta=response.meta, dont_filter=True)
 
     def parse_restaurant_url(self, response):
-        from scrapy.shell import inspect_response
-        inspect_response(response, self)
         url_list = dict()
         count = 1
 
@@ -82,4 +80,3 @@ class TripadvisorTargetUrlSpider(scrapy.Spider):
                 count += 1
 
             yield url_list
-

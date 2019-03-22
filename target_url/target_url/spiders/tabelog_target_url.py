@@ -49,7 +49,7 @@ class TabelogTargetUrlSpider(scrapy.Spider):
         count = 1
         for sel_restaurant_list in response.css('ul.rstlist-info li.list-rst'):
             restaurant_url = sel_restaurant_list.css('li.list-rst::attr("data-detail-url")').extract_first()
-            restaurant_id = sel_restaurant_list.css('li.list-rst::attr("data-detail-url")').extract_first()
+            restaurant_id = re.search('(?<=/)(\d+)', restaurant_url).group()
 
             url_json = '{"url":"' + str(restaurant_url) + '", "restaurant_id": "'+ str(restaurant_id) + '"}'
             url_json_kuchikomi = '{"url":"' + str(restaurant_url+'dtlrvwlst') + '", "restaurant_id": "'+ str(restaurant_id) + '"}'

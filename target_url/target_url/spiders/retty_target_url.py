@@ -79,7 +79,8 @@ class RettyTargetUrlSpider(object):
                 url_list[count] = url_json
                 count += 1
 
-        yield url_list
+        print(url_list)
+
 
 if __name__ == '__main__':
     rettyclass = RettyTargetUrlSpider()
