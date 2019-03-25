@@ -1,8 +1,5 @@
 # -*- coding: utf-8 -*-
 import re
-import json
-import scrapy
-from scrapy_splash import SplashRequest
 from math import ceil
 from scrapy_redis.spiders import RedisSpider
 from scrapy.http.request.form import FormRequest

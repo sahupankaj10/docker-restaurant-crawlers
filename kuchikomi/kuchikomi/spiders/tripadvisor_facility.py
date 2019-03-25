@@ -148,6 +148,6 @@ class TripAdvisorFacilitySpider(RedisSpider):
 
         item['reviews_in_english'] = response.css('.collapsible div[data-tracker="英語"] .count::text').re_first('\d+', default=0)
         item['reviews_in_japanese'] = response.css('.collapsible div[data-tracker="日本語"] .count::text').re_first('\d+', default=0)
-        print(item)
+
         items[counter] = item
         yield items

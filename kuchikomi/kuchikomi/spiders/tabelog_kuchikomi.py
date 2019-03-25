@@ -77,6 +77,7 @@ class TabelogKuchikomiSpider(RedisSpider):
                     item['review_comment'] = re.sub(r'\s+', '', ''.join(review_comment))
                     review_liked_filter = sel_contents.css('div.rvw-item__contents-footer div.js-like-source::text').extract_first()
                     item['review_liked'] = json.loads(review_liked_filter)['count']
+
             items[counter] = item
             counter = counter+1
         yield items
