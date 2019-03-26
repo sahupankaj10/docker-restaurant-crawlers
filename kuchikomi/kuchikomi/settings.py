@@ -8,9 +8,24 @@
 #     https://doc.scrapy.org/en/latest/topics/settings.html
 #     https://doc.scrapy.org/en/latest/topics/downloader-middleware.html
 #     https://doc.scrapy.org/en/latest/topics/spider-middleware.html
-from kuchikomi.common.configuration import Configuration
+import os
+import sys
+import configparser
 
-config = Configuration.get_config_file()
+# Config file path
+path_dir = os.path.dirname(__file__)
+# configFilePath = '~/conf/config.cfg'
+configFilePath = '../../../conf/config_local.cfg'
+
+config = configparser.RawConfigParser()
+
+try:
+    with open(configFilePath) as f:
+        config.readfp(f)
+except IOError:
+    print('Can not open file ' , configFilePath)
+    sys.exit()
+
 
 BOT_NAME = 'kuchikomi'
 
