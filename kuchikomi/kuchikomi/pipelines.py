@@ -5,53 +5,51 @@
 # Don't forget to add your pipeline to the ITEM_PIPELINES setting
 # See: https://doc.scrapy.org/en/latest/topics/item-pipeline.html
 
-import csv
-from kuchikomi.items.tabelog_items import FacilityTabelogItem, KuchikomiTabelogItem, UserTabelogItem
-from kuchikomi.items.tripadvisor_items import KuchikomiTripAdvisorItem, FacilityTripAdvisorItem
-from kuchikomi.items.retty_items import KuchikomiRettyItem, FacilityRettyItem
+from sqlalchemy.orm import scoped_session, sessionmaker
+from kuchikomi.models import db_connect, create_table
+from kuchikomi.models import RettyFacilityDB, RettyKuchikomiDB, TabelogFacilityDB, TabelogKuchikomiDB, TabelogUserDB, \
+    TripAdvisorFacilityDB, TripAdvisorKuchikomiDB
 
 
 class KuchikomiPipeline(object):
-    def process_item(self, item, spider):
-        item_fields = ''
+    def __init__(self):
+        """
+        Initializes database connection and sessionmaker.
+        Creates deals table.
+        """
+        engine = db_connect()
+        create_table(engine)
+        self.session = scoped_session(sessionmaker(bind=engine))
+
+    def process_item(self, items, spider):
+        session = self.session()
+        current_db = None
         if 'tabelog' in spider.name:
             if 'facility' in spider.name:
-                item_fields = FacilityTabelogItem
+                current_db = TabelogFacilityDB
             elif 'kuchikomi' in spider.name:
-                item_fields = KuchikomiTabelogItem
+                current_db = TabelogKuchikomiDB
             elif 'user' in spider.name:
-                item_fields = UserTabelogItem
+                current_db = TabelogUserDB
         elif 'tripadvisor' in spider.name:
             if 'kuchikomi' in spider.name:
-                item_fields = KuchikomiTripAdvisorItem
+                current_db = TripAdvisorKuchikomiDB
             elif 'facility' in spider.name:
-                item_fields = FacilityTripAdvisorItem
+                current_db = TripAdvisorFacilityDB
         elif 'retty' in spider.name:
             if 'kuchikomi' in spider.name:
-                item_fields = KuchikomiRettyItem
+                current_db = RettyKuchikomiDB
             elif 'facility' in spider.name:
-                item_fields = FacilityRettyItem
+                current_db = RettyFacilityDB
 
-        keys = list(item_fields.fields)
-        formatted_item = self.get_formatted_item(item, item_fields)
+        try:
+            for item in items.values():
+                session.add(current_db(**item))
+                session.commit()
+        except:
+            session.rollback()
+            raise
+        finally:
+            session.close()
 
-        with open('../data/'+spider.name+'.tsv', 'a', encoding='UTF-8') as out_file:
-            tsv_writer = csv.DictWriter(out_file, keys, dialect='excel-tab')
-            if out_file.tell() == 0:
-                tsv_writer.writeheader()
-            tsv_writer.writerows(formatted_item)
-
-        return item
-
-    def get_formatted_item(self, item, item_class):
-        z_key = {}
-        z = dict(item_class.fields)
-        z.update((k, 'null') for k in z.keys())
-        z_key.update(z)
-        formatted_item = []
-        for k, v in item.items():
-            z.update(z_key)
-            z.update(v)
-            formatted_item.append(z.copy())
-
-        return formatted_item
+        return items

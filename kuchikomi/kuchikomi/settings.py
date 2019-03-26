@@ -8,6 +8,9 @@
 #     https://doc.scrapy.org/en/latest/topics/settings.html
 #     https://doc.scrapy.org/en/latest/topics/downloader-middleware.html
 #     https://doc.scrapy.org/en/latest/topics/spider-middleware.html
+from kuchikomi.common.configuration import Configuration
+
+config = Configuration.get_config_file()
 
 BOT_NAME = 'kuchikomi'
 
@@ -15,8 +18,18 @@ SPIDER_MODULES = ['kuchikomi.spiders']
 NEWSPIDER_MODULE = 'kuchikomi.spiders'
 
 # Redis host setting
-REDIS_HOST = '127.0.0.1'
-REDIS_PORT = '6379'
+REDIS_HOST = config.get("redis", "host")
+REDIS_PORT = config.get("redis", "port")
+
+# sqlAlchemy mysql db connection string
+CONNECTION_STRING = "{driver_name}://{user}:{passwd}@{host}:{port}/{db_name}?charset=utf8".format(
+    driver_name="mysql",
+    user=config.get("rakuten_crawl", "user"),
+    passwd=config.get("rakuten_crawl", "password"),
+    host=config.get("rakuten_crawl", "host"),
+    port="3306",
+    db_name=config.get("rakuten_crawl", "db"),
+)
 
 # Crawl responsibly by identifying yourself (and your website) on the user-agent
 # USER_AGENT = 'kuchikomi (+http://www.yourdomain.com)'

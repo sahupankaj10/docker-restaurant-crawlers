@@ -45,7 +45,7 @@ class RettyKuchikomiSpider(RedisSpider):
             item['num_of_likes'] = sel_response.css('button.report-reaction__button--like + span::text').get()
             item['num_of_interested'] = sel_response.css('button.report-reaction__button--wannago + span::text').get()
 
-            item['kuchikomi_url'] = response.css('.restaurant-report__link::attr("href")').get()
+            item['kuchikomi_url'] = sel_response.css('.restaurant-report__link::attr("href")').get()
             item['kuchikomi_id'] = re.findall("(?<=/)(\d+)", item['kuchikomi_url'])[1]
 
             items[counter] = item
