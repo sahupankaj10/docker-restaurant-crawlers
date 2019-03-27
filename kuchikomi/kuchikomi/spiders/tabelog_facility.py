@@ -8,6 +8,11 @@ from kuchikomi.items.tabelog_items import FacilityTabelogItem
 class TabelogFacilitySpider(RedisSpider):
     name = "tabelog_facility"
     redis_key = "tabelog_facility"
+    custom_settings = {
+        "DOWNLOADER_MIDDLEWARES": {
+            'kuchikomi.proxy_middlewares.ProxyMiddleware': 1,
+        },
+    }
 
     # analyze
     def parse(self, response):

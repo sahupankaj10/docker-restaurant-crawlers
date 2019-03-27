@@ -11,6 +11,11 @@ class TabelogUserSpider(RedisSpider):
 
     name = "tabelog_user"
     redis_key = "tabelog_user"
+    custom_settings = {
+        "DOWNLOADER_MIDDLEWARES": {
+            'kuchikomi.proxy_middlewares.ProxyMiddleware': 1,
+        },
+    }
 
     # analyze
     def parse(self, response):
