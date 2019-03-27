@@ -5,6 +5,7 @@ from scrapy import signals
 from scrapy.http import HtmlResponse
 from selenium import webdriver
 from selenium.webdriver.firefox.firefox_binary import FirefoxBinary
+from selenium.webdriver.firefox.options import Options
 
 HEADLESS = True
 
@@ -29,7 +30,9 @@ class SeleniumMiddleware(object):
             self.display = Display(visible=0, size=(1280, 1024))
             self.display.start()
         binary = FirefoxBinary(which('firefox'))
-        self.driver = webdriver.Firefox(firefox_binary=binary)
+        options = Options()
+        options.add_argument('-headless')
+        self.driver = webdriver.Firefox(firefox_binary=binary, firefox_options=options)
 
     def spider_closed(self, spider):
         self.driver.close()

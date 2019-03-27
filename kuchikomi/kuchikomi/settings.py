@@ -14,7 +14,7 @@ import configparser
 
 # Config file path
 path_dir = os.path.dirname(__file__)
-configFilePath = '~/conf/config.cfg'
+configFilePath = '/home/ubuntu/conf/config.cfg'
 config = configparser.RawConfigParser()
 
 try:
