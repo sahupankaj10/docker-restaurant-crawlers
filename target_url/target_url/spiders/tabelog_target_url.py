@@ -16,6 +16,11 @@ class TabelogTargetUrlSpider(scrapy.Spider):
     redis_key_user = "tabelog_user"
     redis_key_kuchikomi = "tabelog_kuchikomi"
     redis_key_facility = "tabelog_facility"
+    custom_settings = {
+        "DOWNLOADER_MIDDLEWARES": {
+            'target_url.proxy_middlewares.ProxyMiddleware': 1,
+        },
+    }
 
     # analyze
     def parse(self, response):
