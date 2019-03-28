@@ -59,8 +59,8 @@ class TabelogFacilitySpider(RedisSpider):
                         item['night_budget'] = food_time_amount[index]
                     if 'lunch' in food_time_class:
                         item['day_budget'] = food_time_amount[index]
-                regular_holiday = sel_price.css('dl:nth-child(2) dd.rdheader-subinfo__closed-text::text').extract_first()
-                item['regular_holiday'] = regular_holiday.strip() if regular_holiday is not None else 'null'
+                regular_holiday = sel_price.css('dl:nth-child(2) dd.rdheader-subinfo__closed-text::text').get(default='null').strip()
+                item['regular_holiday'] = re.sub(r'\s+', ' ', ''.join(regular_holiday))
 
         for sel_table in response.css('div.rstinfo-table table:nth-child(2) tr'):
             if sel_table.css('th::text').extract_first() in '受賞・選出歴':
