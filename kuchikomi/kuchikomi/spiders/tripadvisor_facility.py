@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 import base64
 import json
-import re
+import re, scrapy
 
 from bs4 import BeautifulSoup
 from kuchikomi.items.tripadvisor_items import FacilityTripAdvisorItem
@@ -9,7 +9,7 @@ from scrapy.http.request.form import FormRequest
 from scrapy_redis.spiders import RedisSpider
 
 
-class TripAdvisorFacilitySpider(RedisSpider):
+class TripAdvisorFacilitySpider(scrapy.Spider):
     custom_settings = {
         "DOWNLOADER_MIDDLEWARES"  : {
             'scrapy.downloadermiddlewares.cookies.CookiesMiddleware': 700,
@@ -18,7 +18,11 @@ class TripAdvisorFacilitySpider(RedisSpider):
         "RANDOMIZE_DOWNLOAD_DELAY": True
     }
 
-    # start_urls = ['https://www.tripadvisor.jp/Restaurant_Review-g298207-d8499173/?_type=json&start=0']
+    start_urls = ['https://www.tripadvisor.jp/Restaurant_Review-g1066451-d6692412-Reviews-Matsukawa-Minato_Tokyo_Tokyo_Prefecture_Kanto.html',
+                  'https://www.tripadvisor.jp/Restaurant_Review-g298566-d9664981-Reviews-Italian_Spanish_Kitchen_Temparre-Osaka_Osaka_Prefecture_Kinki.html',
+                  'https://www.tripadvisor.jp/Restaurant_Review-g1066451-d1660134-Reviews-Bukedofuransu-Minato_Tokyo_Tokyo_Prefecture_Kanto.html',
+                  'https://www.tripadvisor.jp/Restaurant_Review-g298207-d7729350-Reviews-Pork_Steak_Toichi-Fukuoka_Fukuoka_Prefecture_Kyushu.html',
+                  'https://www.tripadvisor.jp/Restaurant_Review-g298207-d8499173-Reviews-Uobei_Yodobashi_Hakata-Fukuoka_Fukuoka_Prefecture_Kyushu.html']
     COOKIES_ENABLED = True
     COOKIES_DEBUG = True
     handle_httpstatus_list = [400, 403, 404]
@@ -57,20 +61,24 @@ class TripAdvisorFacilitySpider(RedisSpider):
         item = FacilityTripAdvisorItem()
         item['get_url'] = response.url
         item['url_area'] = re.search(r'(?<=Reviews-)(.*)(?=.html)', response.url).group()
-        item['area_id'] = re.search(r'(?<=g)(\d+)', response.url).group()
+        item['area_id'] = area_id = re.search(r'(?<=g)(\d+)', response.url).group()
         item['facility_id'] = re.search(r'(?<=d)(\d+)', response.url).group()
+        area_urls = response.css('ul.breadcrumbs > li a[itemprop="url"]::attr("href")').getall()
+        if len(area_urls) > 0:
+            item['url_area'] = re.search(r'(?<=g'+area_id+'-)(.*)(?=.html)', area_urls.pop()).group()
+
         area = response.css('ul.breadcrumbs li [itemprop="title"]::text').extract()
         item['store_name'] = response.css('li.breadcrumb:last-child ::text').extract_first()
         area.append(item['store_name']) if item['store_name'] is not None else area
         item['area'] = ';'.join(area)
 
         overall_rating = response.css('div.ratingContainer span.ui_bubble_rating::attr(class)').re_first('bubble_(\d+)')
-        item['overall_rating'] = int(overall_rating) / 10 if overall_rating is not None else 0
+        item['overall_rating'] = str(int(overall_rating) / 10) if overall_rating is not None else 'null'
         review_count = response.css('span.reviewCount::text').re_first('\d+')
-        item['number_of_reviews'] = float(review_count) if review_count is not None else 'null'
+        item['number_of_reviews'] = str(review_count) if review_count is not None else 'null'
 
         rank = response.css('.header_popularity  ::text').extract()
-        item['rank'] = ''.join(rank)
+        item['rank'] = ''.join(rank) if len(rank) > 0 else 'null'
         href_list = response.css('.header_links a::attr("href")').getall()
         text_list = response.css('.header_links a::text').getall()
         for index, href in enumerate(href_list):
@@ -79,58 +87,57 @@ class TripAdvisorFacilitySpider(RedisSpider):
             elif '-c' in href:
                 item['cooking_genres'] = text_list[index].strip()
 
-        street_address = response.css('div.address span.detail ::text').extract()
-        item['street_address'] = ''.join(street_address)
-
+        item['street_address'] = self.format_list((response.css('div.address span.detail ::text').extract()))
         item['phone_number'] = response.css('div.phone span.detail ::text').get(default='null').strip()
-
-        item['number_of_photos'] = response.css('.mosaic_photos span.details ::text').re_first('\d+')
-        item['award'] = response.css(
-            'div[class^="restaurants-detail-overview-cards-RatingsOverviewCard__award"] ::text').get(default='null').strip()
+        item['number_of_photos'] = response.css('.mosaic_photos span.details ::text').re_first('\d+', default='null')
+        item['award'] = self.format_list(response.css('div[class^="restaurants-detail-overview-cards-RatingsOverviewCard__award"] ::text').getall())
 
         for sel in response.css(
                 'div[class^="restaurants-detail-overview-cards-RatingsOverviewCard__ratingQuestionRow--"] '):
             score_name = sel.css('::text').get(default='null').strip()
             score = sel.css('.ui_bubble_rating::attr("class")').re_first('\d+')
-            score = int(score) / 10
+            score = str(int(score) / 10)
             if '食事' in score_name:
-                item['food_score'] = float(score)
+                item['food_score'] = score
             elif '雰囲気' in score_name:
-                item['atmosphere_score'] = float(score)
+                item['atmosphere_score'] = score
             elif '価格' in score_name:
-                item['price_score'] = float(score)
+                item['price_score'] = score
             elif 'サービス' in score_name:
-                item['service_score'] = float(score)
+                item['service_score'] = score
 
         script_basic_info = response.css('script[type="application/ld+json"]::text').get(default='null').strip()
         basic_info = json.loads(script_basic_info)
 
-        class_for = response.css(
-            'div[class^="restaurants-detail-overview-cards-DetailsSectionOverviewCard__tagText"]::text').extract()
+        class_category = response.css(
+            'div[class^="restaurants-detail-overview-cards-DetailsSectionOverviewCard__categoryTitle"]::text').extract()
         class_text = response.css(
             'div[class^="restaurants-detail-overview-cards-DetailsSectionOverviewCard__tagText"]::text').extract()
-        for index, cls in enumerate(class_for):
+        for index, cls in enumerate(class_category):
             if '料理' in cls:
                 item['cuisine'] = class_text[index]
-            elif '食事の時間帯' in class_for:
+            elif '食事の時間帯' in cls:
                 item['meal_hours'] = class_text[index]
-            elif '食材別のメニュー' in class_for:
+            elif '食材別のメニュー' in cls:
                 item['menu'] = class_text[index]
-            elif '機能' in class_for:
+            elif '機能' in cls:
                 item['function'] = class_text[index]
 
         item['location'] = response.css(
             'div[class^="restaurants-detail-overview-cards-LocationOverviewCard__addressLink"] :first-child::text').get(
             default="null")
         nearest_area = response.css(
-            'div[class^="restaurants-detail-overview-cards-LocationOverviewCard__addressLink"] :last-child::text').getall()
-        item['nearest_area'] = ''.join(nearest_area)
+            'span[class^="restaurants-detail-overview-cards-LocationOverviewCard__"] div ::text').getall()
+        item['nearest_area'] = re.sub(r'\s+', ' ', ' '.join(nearest_area)) if len(nearest_area) > 0 else 'null'
 
         official_site = response.css(
             'div[class^="restaurants-detail-overview-cards-LocationOverviewCard__contactRow"] div::attr("data-encoded-url")').get()
         if official_site is not None:
             decoded_url = base64.b64decode(official_site)
             item['official_site'] = re.findall('_(.*?)_', BeautifulSoup(decoded_url, 'html.parser').text)[0]
+
+        business_hours = response.css('span[class^="public-location-hours-LocationHours__hoursOpenerText"] ::text').getall()
+        item['business_hours'] = self.format_list(business_hours)
 
         for sel in response.css('.collapsible div[data-name="ta_rating"] div.item'):
             label = sel.css('label::text').get()
@@ -151,3 +158,8 @@ class TripAdvisorFacilitySpider(RedisSpider):
 
         items[counter] = item
         yield items
+
+    @staticmethod
+    def format_list(text_list):
+        formatted_text = re.sub(r'\s+', '', ''.join(text_list)) if len(text_list) > 0 else 'null'
+        return formatted_text
