@@ -9,8 +9,7 @@ from scrapy.http.request.form import FormRequest
 from scrapy_redis.spiders import RedisSpider
 
 
-# class TripAdvisorFacilitySpider(RedisSpider):
-class TripAdvisorFacilitySpider(scrapy.Spider):
+class TripAdvisorFacilitySpider(RedisSpider):
     custom_settings = {
         "DOWNLOADER_MIDDLEWARES"  : {
             'scrapy.downloadermiddlewares.cookies.CookiesMiddleware': 700,
@@ -19,7 +18,6 @@ class TripAdvisorFacilitySpider(scrapy.Spider):
         "RANDOMIZE_DOWNLOAD_DELAY": True
     }
 
-    start_urls = ['https://www.tripadvisor.jp/Restaurant_Review-g1066461-d1696081-Reviews-Takeishokudo-Taito_Tokyo_Tokyo_Prefecture_Kanto.html']
     COOKIES_ENABLED = True
     COOKIES_DEBUG = True
     handle_httpstatus_list = [400, 403, 404]
