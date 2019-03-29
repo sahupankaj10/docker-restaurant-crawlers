@@ -9,7 +9,7 @@ from scrapy.http.request.form import FormRequest
 from scrapy_redis.spiders import RedisSpider
 
 
-class TripAdvisorFacilitySpider(scrapy.Spider):
+class TripAdvisorFacilitySpider(RedisSpider):
     custom_settings = {
         "DOWNLOADER_MIDDLEWARES"  : {
             'scrapy.downloadermiddlewares.cookies.CookiesMiddleware': 700,
@@ -18,11 +18,6 @@ class TripAdvisorFacilitySpider(scrapy.Spider):
         "RANDOMIZE_DOWNLOAD_DELAY": True
     }
 
-    start_urls = ['https://www.tripadvisor.jp/Restaurant_Review-g1066451-d6692412-Reviews-Matsukawa-Minato_Tokyo_Tokyo_Prefecture_Kanto.html',
-                  'https://www.tripadvisor.jp/Restaurant_Review-g298566-d9664981-Reviews-Italian_Spanish_Kitchen_Temparre-Osaka_Osaka_Prefecture_Kinki.html',
-                  'https://www.tripadvisor.jp/Restaurant_Review-g1066451-d1660134-Reviews-Bukedofuransu-Minato_Tokyo_Tokyo_Prefecture_Kanto.html',
-                  'https://www.tripadvisor.jp/Restaurant_Review-g298207-d7729350-Reviews-Pork_Steak_Toichi-Fukuoka_Fukuoka_Prefecture_Kyushu.html',
-                  'https://www.tripadvisor.jp/Restaurant_Review-g298207-d8499173-Reviews-Uobei_Yodobashi_Hakata-Fukuoka_Fukuoka_Prefecture_Kyushu.html']
     COOKIES_ENABLED = True
     COOKIES_DEBUG = True
     handle_httpstatus_list = [400, 403, 404]
