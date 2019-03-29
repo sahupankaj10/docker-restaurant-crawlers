@@ -9,7 +9,8 @@ from scrapy.http.request.form import FormRequest
 from scrapy_redis.spiders import RedisSpider
 
 
-class TripAdvisorFacilitySpider(RedisSpider):
+# class TripAdvisorFacilitySpider(RedisSpider):
+class TripAdvisorFacilitySpider(scrapy.Spider):
     custom_settings = {
         "DOWNLOADER_MIDDLEWARES"  : {
             'scrapy.downloadermiddlewares.cookies.CookiesMiddleware': 700,
@@ -18,6 +19,7 @@ class TripAdvisorFacilitySpider(RedisSpider):
         "RANDOMIZE_DOWNLOAD_DELAY": True
     }
 
+    start_urls = ['https://www.tripadvisor.jp/Restaurant_Review-g1066461-d1696081-Reviews-Takeishokudo-Taito_Tokyo_Tokyo_Prefecture_Kanto.html']
     COOKIES_ENABLED = True
     COOKIES_DEBUG = True
     handle_httpstatus_list = [400, 403, 404]
@@ -55,12 +57,9 @@ class TripAdvisorFacilitySpider(RedisSpider):
 
         item = FacilityTripAdvisorItem()
         item['get_url'] = response.url
-        item['url_area'] = re.search(r'(?<=Reviews-)(.*)(?=.html)', response.url).group()
+        item['url_area'] = re.findall(r'(?<=Reviews-)\w+-(\w+)', response.url)[0]
         item['area_id'] = area_id = re.search(r'(?<=g)(\d+)', response.url).group()
         item['facility_id'] = re.search(r'(?<=d)(\d+)', response.url).group()
-        area_urls = response.css('ul.breadcrumbs > li a[itemprop="url"]::attr("href")').getall()
-        if len(area_urls) > 0:
-            item['url_area'] = re.search(r'(?<=g'+area_id+'-)(.*)(?=.html)', area_urls.pop()).group()
 
         area = response.css('ul.breadcrumbs li [itemprop="title"]::text').extract()
         item['store_name'] = response.css('li.breadcrumb:last-child ::text').extract_first()
