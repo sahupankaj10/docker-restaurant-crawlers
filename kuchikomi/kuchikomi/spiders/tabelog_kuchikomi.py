@@ -14,8 +14,11 @@ class TabelogKuchikomiSpider(RedisSpider):
     redis_key = "tabelog_kuchikomi"
     custom_settings = {
         "DOWNLOADER_MIDDLEWARES": {
-            'kuchikomi.proxy_middlewares.ProxyMiddleware': 1,
+            "kuchikomi.header_middleware.HeaderMiddleware": 1,
+            'kuchikomi.proxy_middlewares.ProxyMiddleware' : 2,
         },
+        "DOWNLOAD_DELAY"          : .5,
+        "RANDOMIZE_DOWNLOAD_DELAY": True
     }
 
     # analyze
@@ -88,5 +91,5 @@ class TabelogKuchikomiSpider(RedisSpider):
 
     @staticmethod
     def format_list(text_list):
-        formatted_text = re.sub(r'\s+', '', ''.join(text_list))
-        return formatted_text if formatted_text is not None else 'null'
+        formatted_text = re.sub(r'\s+', '', ''.join(text_list)) if len(text_list) > 0 else 'null'
+        return formatted_text

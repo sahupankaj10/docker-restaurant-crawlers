@@ -13,8 +13,11 @@ class TabelogUserSpider(RedisSpider):
     redis_key = "tabelog_user"
     custom_settings = {
         "DOWNLOADER_MIDDLEWARES": {
-            'kuchikomi.proxy_middlewares.ProxyMiddleware': 1,
+            "kuchikomi.header_middleware.HeaderMiddleware": 1,
+            'kuchikomi.proxy_middlewares.ProxyMiddleware': 2,
         },
+        "DOWNLOAD_DELAY"          : .5,
+        "RANDOMIZE_DOWNLOAD_DELAY": True
     }
 
     # analyze
