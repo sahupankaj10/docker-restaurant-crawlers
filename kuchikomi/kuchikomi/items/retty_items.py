@@ -32,7 +32,6 @@ class FacilityRettyItem(scrapy.Item):
     area                = scrapy.Field()
     store_name          = scrapy.Field()
     store_kana_name     = scrapy.Field()
-    num_of_likes        = scrapy.Field()
     num_of_interested   = scrapy.Field()
     store_popularity    = scrapy.Field()
     description         = scrapy.Field()
