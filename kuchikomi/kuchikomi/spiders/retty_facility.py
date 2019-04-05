@@ -36,7 +36,7 @@ class RettyFacilitySpider(RedisSpider):
         store_popularity = len(response.css('.popularity.restaurant-summary__popularity-label svg').getall())
         item['store_popularity'] = 'null' if store_popularity == 0 else store_popularity
 
-        item['description'] = re.sub(r'\s+', '', ''.join(response.css('.restaurant-description__body ::text').getall()))
+        item['description'] = self.format_list(response.css('.restaurant-description__body ::text').getall())
         item['description_title'] = response.css('.restaurant-description__catchcopy::text').get(
             default='null').strip()
 
@@ -73,9 +73,9 @@ class RettyFacilitySpider(RedisSpider):
             if 'ジャンル' in info_title_list[index]:
                 item['genre'] = ';'.join(dd.css('ul li::text').getall())
             elif '営業時間' in info_title_list[index]:
-                item['business_hours'] = re.sub(r'\s+', ' ', ' '.join(dd.css('time pre::text').getall()))
+                item['business_hours'] = re.sub(r'\s+', ' ', (' '.join(dd.css('time pre::text').getall())).strip())
             elif '定休日' in info_title_list[index]:
-                item['regular_holiday'] = re.sub(r'\s+', ' ', ' '.join(dd.css('time pre::text').getall()))
+                item['regular_holiday'] = re.sub(r'\s+', ' ', (' '.join(dd.css('time pre::text').getall())).strip())
             elif 'カード' in info_title_list[index]:
                 payment_card = dd.css('strong::text').get(default='null').strip()
                 item['payment_card'] = payment_card + ';'.join(dd.css('ul.credit-card-list li::text').getall())
@@ -86,7 +86,7 @@ class RettyFacilitySpider(RedisSpider):
             elif '住所' in info_title_list[index]:
                 item['street_address'] = dd.css('a::text').get(default="null").strip()
             elif 'アクセス' in info_title_list[index]:
-                item['access'] = re.sub('\s+', ' ', ';'.join(response.css('pre span::text').getall()))
+                item['access'] = self.format_list(response.css('pre span::text').getall())
             elif '店名' in info_title_list[index]:
                 store_name = dd.css('dd ruby span::text').get(default='').strip()
                 store_kana = dd.css('dd ruby rt::text').get(default='').strip()
@@ -98,16 +98,21 @@ class RettyFacilitySpider(RedisSpider):
             elif 'お店のホームページ' in info_title_list[index]:
                 item['home_page'] = dd.css('dd li a::attr("href")').get(default="null")
             elif 'FacebookのURL' in info_title_list[index]:
-                item['facebook_url'] = dd.css('dd > a::attr("href")').get(default="null")
+                item['facebook_url'] = dd.css('dd a::attr("href")').get(default="null")
             elif 'オンライン予約' in info_title_list[index]:
-                item['online_booking'] = dd.css('dd > button::attr("text")').get(default="null")
+                item['online_booking'] = dd.css('dd a::attr("text")').get(default="null").strip()
             elif '宴会収容人数' in info_title_list[index]:
                 item['banquet_capacity'] = dd.css('dd::text').re_first('(\d+)人')
             elif 'ウェディング・二次会対応' in info_title_list[index]:
                 item['party_correspondence'] = dd.css('dd::text').get(default="null").strip()
 
-            item['budget'] = ';'.join(response.css('.budgets__price::text').extract())
+            item['budget'] = self.format_list(response.css('.budgets__price::text').extract())
 
         items[counter] = item
 
         yield items
+
+    @staticmethod
+    def format_list(text_list):
+        formatted_text = re.sub(r'\s+', '', ';'.join(text_list)) if len(text_list) > 0 else 'null'
+        return formatted_text if formatted_text.strip() else 'null'

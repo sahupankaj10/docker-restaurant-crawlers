@@ -12,7 +12,7 @@ class TabelogFacilitySpider(RedisSpider):
     custom_settings = {
         "DOWNLOADER_MIDDLEWARES": {
             "kuchikomi.header_middleware.HeaderMiddleware": 1,
-            'kuchikomi.proxy_middlewares.ProxyMiddleware': 2,
+            # 'kuchikomi.proxy_middlewares.ProxyMiddleware': 2,
         },
         "DOWNLOAD_DELAY"          : .5,
         "RANDOMIZE_DOWNLOAD_DELAY": True
@@ -63,7 +63,7 @@ class TabelogFacilitySpider(RedisSpider):
                     if 'lunch' in time_class:
                         item['day_budget'] = food_time_amount[index]
                 regular_holiday = sel_price.css('dl:nth-child(2) dd.rdheader-subinfo__closed-text::text').getall()
-                item['regular_holiday'] = re.sub(r'\s+', '', ''.join(regular_holiday))
+                item['regular_holiday'] = self.format_list(regular_holiday)
 
         for sel_table in response.css('div.rstinfo-table table tr'):
             head_field = re.sub(r'\s+', '', ''.join(sel_table.css('th ::text').getall()))
@@ -104,7 +104,7 @@ class TabelogFacilitySpider(RedisSpider):
                         item['day_budget_in_reviews'] = review_time_amount[index]
             elif head_field in '支払い方法':
                 item['method_of_payment'] = self.format_list(sel_table.css('td p::text').extract())
-            elif head_field in 'サービス料・チャージ':
+            elif head_field == 'サービス料・チャージ':
                 item['service_charge'] = self.format_list(sel_table.css('td p::text').extract())
 
             elif head_field in '席数':
@@ -133,7 +133,7 @@ class TabelogFacilitySpider(RedisSpider):
                  item['use_scene'] = self.format_list(sel_table.css('td p a::text').extract())
             elif head_field in 'ロケーション':
                  item['location'] = self.format_list(sel_table.css('td p::text').extract())
-            elif head_field in 'サービス':
+            elif head_field == 'サービス':
                  item['service'] = self.format_list(sel_table.css('td p::text').extract())
             elif head_field in 'お子様連れ':
                  item['children'] = re.sub(r'\s+', '', ''.join(sel_table.css('td p ::text').extract()))
@@ -164,4 +164,4 @@ class TabelogFacilitySpider(RedisSpider):
     @staticmethod
     def format_list(text_list):
         formatted_text = re.sub(r'\s+', '', ';'.join(text_list)) if len(text_list) > 0 else 'null'
-        return formatted_text
+        return formatted_text if formatted_text.strip() else 'null'

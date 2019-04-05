@@ -21,7 +21,8 @@ class HeaderMiddleware(object):
             "Accept-Language"          : "ja;q=0.9, en;q=0.8",
             "Upgrade-Insecure-Requests": "1",
             "Content-Type"             : 'text/html; charset=UTF-8',
-            "User-Agent"               : "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/73.0.3683.86 Safari/537.36"
+            "User-Agent": "Mozilla/5.0 (compatible; Baiduspider/2.0; +http://www.baidu.com/search/spider.html)"
+            # "User-Agent"               : "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/73.0.3683.86 Safari/537.36"
         }
         return cls(headers.items())
 
