@@ -18,8 +18,11 @@ class TabelogTargetUrlSpider(scrapy.Spider):
     redis_key_facility = "tabelog_facility"
     custom_settings = {
         "DOWNLOADER_MIDDLEWARES": {
-            'target_url.proxy_middlewares.ProxyMiddleware': 1,
+            "target_url.header_middleware.HeaderMiddleware": 1,
+            # 'target_url.proxy_middlewares.ProxyMiddleware': 2,
         },
+        "DOWNLOAD_DELAY"          : .5,
+        "RANDOMIZE_DOWNLOAD_DELAY": True
     }
 
     # analyze
