@@ -1,6 +1,6 @@
 # -*- config: utf-8 -*-
 
-from sqlalchemy import create_engine, Column
+from sqlalchemy import create_engine, Column, UniqueConstraint
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy import Integer, String, Text
 
@@ -35,6 +35,8 @@ class RettyKuchikomiDB(DeclarativeBase):
     review_date     = Column('投稿日時', String(20), comment="review_date", nullable=True, default='null')
     num_of_likes    = Column('いいね件数', String(10), comment="num_of_likes", nullable=True, default='null')
     num_of_interested = Column('行きたい件数', String(10), comment="num_of_interested", nullable=True, default='null')
+    # composite unique constraint.
+    UniqueConstraint(kuchikomi_id, restaurant_id, name="unique_key")
 
 
 class RettyFacilityDB(DeclarativeBase):
@@ -45,10 +47,10 @@ class RettyFacilityDB(DeclarativeBase):
     url_pre         = Column('url_pre', String(50), comment="URL_PRE")
     url_area        = Column('url_area', String(50), comment="URL_ARE")
     url_sub         = Column('url_sub', String(50), comment="URL_SUB")
-    restaurant_id   = Column('店舗ID', String(20), comment="店舗ID")
-    area            = Column('エリア', String(50), comment="area")
-    store_name      = Column('店舗名', String(20), comment="store_name")
-    store_kana_name = Column('よみ', String(20), comment="store_kana_name")
+    restaurant_id   = Column('店舗ID', String(20), comment="restaurant id")
+    area            = Column('エリア', Text, comment="area")
+    store_name      = Column('店舗名', String(100), comment="store_name")
+    store_kana_name = Column('よみ', String(100), comment="store_kana_name", nullable=True, default='null')
     num_of_interested   = Column('行きたい件数', String(10), comment="num_of_interested", nullable=True, default='null')
     store_popularity    = Column('人気店★数', String(10), comment="store_popularity", nullable=True, default='null')
     description_title   = Column('紹介文タイトル', Text, comment="description_title", nullable=True, default='null')
@@ -84,6 +86,8 @@ class RettyFacilityDB(DeclarativeBase):
     phone_number    = Column('電話番号', String(50), comment="phone_number", nullable=True, default='null')
     banquet_capacity= Column('宴会収容人数', String(20), comment="banquet_capacity", nullable=True, default='null')
     party_correspondence = Column('ウェディング・二次会対応', Text, comment="party_correspondence", nullable=True, default='null')
+    # composite unique constraint.
+    UniqueConstraint(url_pre, url_area, url_sub, restaurant_id, name="unique_key")
 
 
 class TripAdvisorKuchikomiDB(DeclarativeBase):
@@ -109,6 +113,8 @@ class TripAdvisorKuchikomiDB(DeclarativeBase):
     price_score         = Column('価格', String(10), comment="price_score", nullable=True, default='null')
     atmosphere_score    = Column('雰囲気', String(10), comment="atmosphere_score", nullable=True, default='null')
     post_useful         = Column('役にたった', String(10), comment="post_useful", nullable=True, default='null')
+    # composite unique constraint.
+    UniqueConstraint(area_id, facility_id, review_id, name="unique_key")
 
 
 class TripAdvisorFacilityDB(DeclarativeBase):
@@ -155,6 +161,8 @@ class TripAdvisorFacilityDB(DeclarativeBase):
     travelers_type_solo      = Column('一人', Integer, comment="travelers_type_solo", nullable=True, default='null')
     travelers_type__business = Column('出張ビジネス', Integer, comment="travelers_type__business", nullable=True, default='null')
     travelers_type_friend    = Column('旅行者タイプ', Integer, comment="travelers_type_friend", nullable=True, default='null')
+    # composite unique constraint.
+    UniqueConstraint(url_area, area_id, facility_id, name="unique_key")
 
 
 class TabelogUserDB(DeclarativeBase):
@@ -162,7 +170,7 @@ class TabelogUserDB(DeclarativeBase):
 
     id                  = Column(Integer, primary_key=True)
     hotel_id            = Column('店舗ID', String(20), comment="hotel_id")
-    get_url             = Column('クチコミURL', String(500), comment="get_urlL")
+    get_url             = Column('クチコミURL', String(500), comment="get_url")
     kuchikomi_id        = Column('クチコミID', String(20), comment="kuchikomi_id")
     customer_name       = Column('投稿者', String(50), comment="customer_id")
     customer_id         = Column('投稿者ID', String(20), comment="customer_id")
@@ -180,7 +188,9 @@ class TabelogUserDB(DeclarativeBase):
     day_cp_rating           = Column('(昼)CP', String(10), comment="day_cp_rating", nullable=True, default='null')
     day_drink_rating        = Column('(昼)酒・ドリンク', String(10), comment="day_drink_rating", nullable=True, default='null')
     day_amount              = Column('(昼)使った金額（1人）', String(50), comment="day_amount", nullable=True, default='null')
-    number_of_visit     = Column('来店数', String(20), comment="number_of_visit", nullable=True, default='null')
+    number_of_visit         = Column('来店数', String(20), comment="number_of_visit", nullable=True, default='null')
+    # composite unique constraint.
+    UniqueConstraint(hotel_id, kuchikomi_id, customer_name, customer_id, name="unique_key")
 
 
 class TabelogKuchikomiDB(DeclarativeBase):
@@ -210,6 +220,8 @@ class TabelogKuchikomiDB(DeclarativeBase):
     review_title        = Column('タイトル', Text, comment="review_title")
     review_comment      = Column('クチコミ詳細', Text, comment="review_comment")
     review_liked        = Column('いいね件数', String(50), comment="review_liked", nullable=True, default='null')
+    # composite unique constraint.
+    UniqueConstraint(hotel_id, kuchikomi_id, customer_name, customer_id, review_date, name="unique_key")
 
 
 class TabelogFacilityDB(DeclarativeBase):
@@ -270,5 +282,7 @@ class TabelogFacilityDB(DeclarativeBase):
     phone_number            = Column('電話番号', String(20), comment="phone_number", nullable=True, default='null')
     remarks                 = Column('備考', Text, comment="remarks", nullable=True, default='null')
     original_contributor    = Column('初投稿者', String(50), comment="original_contributor", nullable=True, default='null')
+    # composite unique constraint.
+    UniqueConstraint(url_pre, url_area1, url_area2, hotel_id, name="unique_key")
 
 
