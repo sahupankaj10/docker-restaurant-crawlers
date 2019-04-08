@@ -128,7 +128,7 @@ class TripAdvisorFacilitySpider(RedisSpider):
             decoded_url = base64.b64decode(official_site)
             item['official_site'] = re.findall('_(.*?)_', BeautifulSoup(decoded_url, 'html.parser').text)[0]
 
-        business_hours = response.css('span[class^="public-location-hours-LocationHours__hoursOpenerText"] ::text').getall()
+        business_hours = response.css('span[class^="public-location-hours-LocationHours__hoursOpenerText"] span::text').getall()
         item['business_hours'] = self.format_list(business_hours)
 
         for sel in response.css('.collapsible div[data-name="ta_rating"] div.item'):

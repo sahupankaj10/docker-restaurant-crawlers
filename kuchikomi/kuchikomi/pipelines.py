@@ -6,6 +6,7 @@
 # See: https://doc.scrapy.org/en/latest/topics/item-pipeline.html
 
 from sqlalchemy.orm import scoped_session, sessionmaker
+from sqlalchemy.exc import IntegrityError
 from kuchikomi.models import db_connect, create_table
 from kuchikomi.models import RettyFacilityDB, RettyKuchikomiDB, TabelogFacilityDB, TabelogKuchikomiDB, TabelogUserDB, \
     TripAdvisorFacilityDB, TripAdvisorKuchikomiDB
@@ -46,6 +47,8 @@ class KuchikomiPipeline(object):
             for item in items.values():
                 session.add(current_db(**item))
                 session.commit()
+        except IntegrityError:
+            session.rollback()
         except:
             session.rollback()
             raise
