@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 import re
-import time
+import time, logging
 import redis
 import scrapy
 from math import ceil
@@ -43,14 +43,26 @@ class TabelogTargetUrlSpider(scrapy.Spider):
             prefecture_sub_area = sel_prefecture_area.css('a::attr("href")').extract_first()
             if prefecture_sub_area is not None:
                 target_url = prefecture_sub_area
-                yield FormRequest(target_url, method='GET', meta=response.meta, callback=self.parse_prefecture_area_restaurant)
+                yield FormRequest(target_url, method='GET', meta=response.meta, callback=self.parse_prefecture_sub_area_filter)
 
-    def parse_prefecture_area_restaurant(self, response):
-        total_kuchikomi = response.css('span:last-child.c-page-count__num>strong::text').extract_first()
-        number_of_pages = ceil(int(total_kuchikomi) / 20)
-        for page in range(1, number_of_pages + 1):
-            target_url = response.url + "rstLst/{}/".format(str(page))
-            yield FormRequest(target_url, method='GET', meta=response.meta, callback=self.parse_restaurant_url)
+    def parse_prefecture_sub_area_filter(self, response):
+        # price range
+        for i in range(12):
+            lst_cost = str(i+1) if i < 11 else str(i)
+            # day filter
+            for day_wise in [1]:
+                filter_data = {'LstCos': str(i), 'LstCosT': lst_cost, 'RdoCosTp': str(day_wise)}
+                target_url = response.url+'rstLst/'
+                yield FormRequest(target_url, method='GET', formdata=filter_data, meta=response.meta, callback=self.parse_restaurant_url)
+
+    # def parse_prefecture_area_restaurant(self, response):
+    #     total_kuchikomi = response.css('span:last-child.c-page-count__num>strong::text').extract_first()
+    #     logging.info("kuchikomi:%s->%s" % (total_kuchikomi, response.url))
+        # if total_kuchikomi:
+        #     number_of_pages = ceil(int(total_kuchikomi) / 20)
+        #     for page in range(1, number_of_pages + 1):
+        #         target_url = response.url + "{}/".format(str(page))
+        #         yield FormRequest(target_url, method='GET', meta=response.meta, callback=self.parse_restaurant_url, dont_filter=False)
 
     def parse_restaurant_url(self, response):
         url_list = dict()
@@ -70,3 +82,8 @@ class TabelogTargetUrlSpider(scrapy.Spider):
             count += 1
 
         yield url_list
+
+        next_page = response.css('li.c-pagination__item a[rel$="next"]::attr(href)').get()
+        if next_page is not None:
+            next_page = response.urljoin(next_page)
+            yield scrapy.Request(next_page, callback=self.parse_restaurant_url)
