@@ -10,7 +10,7 @@ class RettyFacilitySpider(RedisSpider):
     redis_key = "retty_facility"
     custom_settings = {
         "DOWNLOADER_MIDDLEWARES": {
-            'kuchikomi.selenium_middleware.SeleniumMiddleware': 200,
+            'kuchikomi.windows_selenium_middleware.SeleniumMiddleware': 200,
         },
     }
 
@@ -30,6 +30,13 @@ class RettyFacilitySpider(RedisSpider):
 
         item['store_name'] = response.css('.restaurant-summary__display-name::text').get(default='null').strip()
         item['store_kana_name'] = response.css('.restaurant-summary__kana-name::text').get(default='null')
+
+        info_label_list = response.css('.information-list dt.information-list__label span::text').getall()
+        for index, dd in enumerate(response.css('.information-list dd.information-list__description')):
+            if 'ジャンル' in info_label_list[index]:
+                item['genre'] = ';'.join(dd.css('::text').getall())
+            elif '定休日' in info_label_list[index]:
+                item['regular_holiday'] = re.sub(r'\s+', ' ', (' '.join(dd.css(' ::text').getall())).strip())
 
         item['num_of_interested'] = response.css('button.wannago-button span:last-child::text').get(
             default='null').strip()
@@ -71,11 +78,11 @@ class RettyFacilitySpider(RedisSpider):
         info_title_list = response.css('.restaurant-info-table dt::text').getall()
         for index, dd in enumerate(response.css('.restaurant-info-table dd')):
             if 'ジャンル' in info_title_list[index]:
-                item['genre'] = ';'.join(dd.css('ul li::text').getall())
+                item['genre_info'] = ';'.join(dd.css('ul li::text').getall())
             elif '営業時間' in info_title_list[index]:
                 item['business_hours'] = re.sub(r'\s+', ' ', (' '.join(dd.css('time pre::text').getall())).strip())
             elif '定休日' in info_title_list[index]:
-                item['regular_holiday'] = re.sub(r'\s+', ' ', (' '.join(dd.css('time pre::text').getall())).strip())
+                item['regular_holiday_info'] = re.sub(r'\s+', ' ', (' '.join(dd.css('time pre::text').getall())).strip())
             elif 'カード' in info_title_list[index]:
                 payment_card = dd.css('strong::text').get(default='null').strip()
                 item['payment_card'] = payment_card + ';'.join(dd.css('ul.credit-card-list li::text').getall())
@@ -97,6 +104,8 @@ class RettyFacilitySpider(RedisSpider):
                 item['phone_number'] = dd.css('dd::text').get(default="null").strip()
             elif 'お店のホームページ' in info_title_list[index]:
                 item['home_page'] = dd.css('dd li a::attr("href")').get(default="null")
+            elif '備考' in info_title_list[index]:
+                item['remarks'] = self.format_list(dd.css('dd span ::text').getall())
             elif 'FacebookのURL' in info_title_list[index]:
                 item['facebook_url'] = dd.css('dd a::attr("href")').get(default="null")
             elif 'オンライン予約' in info_title_list[index]:
