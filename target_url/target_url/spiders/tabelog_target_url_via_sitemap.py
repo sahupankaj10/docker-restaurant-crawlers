@@ -19,7 +19,9 @@ class TabelogTargetUrlSpider(scrapy.Spider):
     redis_key_facility = "tabelog_facility"
 
     custom_settings = {
-        "User-Agent": "Mozilla/5.0 (compatible; Baiduspider/2.0; +http://www.baidu.com/search/spider.html)",
+        "DOWNLOADER_MIDDLEWARES": {
+           "target_url.header_middleware.HeaderMiddleware": 1,
+        },
         "DOWNLOAD_DELAY"          : .5,
         "RANDOMIZE_DOWNLOAD_DELAY": True
     }
