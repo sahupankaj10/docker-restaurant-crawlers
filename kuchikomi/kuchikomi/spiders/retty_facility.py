@@ -10,7 +10,8 @@ class RettyFacilitySpider(RedisSpider):
     redis_key = "retty_facility"
     custom_settings = {
         "DOWNLOADER_MIDDLEWARES": {
-            'kuchikomi.windows_selenium_middleware.SeleniumMiddleware': 200,
+            'kuchikomi.selenium_middleware.SeleniumMiddleware': 200,
+            # 'kuchikomi.windows_selenium_middleware.SeleniumMiddleware': 200,
         },
     }
 
