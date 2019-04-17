@@ -80,7 +80,7 @@ class TripAdvisorFacilitySpider(RedisSpider):
                 item['price_range'] = text
             else:
                 cooking_genres.append(text)
-        item['cooking_genres'] = ', '.join(cooking_genres)
+        item['cooking_genres'] = ', '.join(cooking_genres) if len(cooking_genres) > 0 else 'null'
 
         item['street_address'] = self.format_list((response.css('div.address span.detail ::text').extract()))
         item['phone_number'] = response.css('div.phone span.detail ::text').get(default='null').strip()
