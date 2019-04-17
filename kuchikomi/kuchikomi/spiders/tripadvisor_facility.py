@@ -73,11 +73,14 @@ class TripAdvisorFacilitySpider(RedisSpider):
         item['rank'] = ''.join(rank) if len(rank) > 0 else 'null'
         href_list = response.css('.header_links a::attr("href")').getall()
         text_list = response.css('.header_links a::text').getall()
+        cooking_genres = []
         for index, href in enumerate(href_list):
-            if '-c' not in href:
-                item['price_range'] = text_list[index].strip()
-            elif '-c' in href:
-                item['cooking_genres'] = text_list[index].strip()
+            text = text_list[index].strip()
+            if '￥' in text:
+                item['price_range'] = text
+            else:
+                cooking_genres.append(text)
+        item['cooking_genres'] = ', '.join(cooking_genres)
 
         item['street_address'] = self.format_list((response.css('div.address span.detail ::text').extract()))
         item['phone_number'] = response.css('div.phone span.detail ::text').get(default='null').strip()
