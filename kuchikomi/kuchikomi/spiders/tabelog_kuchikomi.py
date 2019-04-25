@@ -80,7 +80,7 @@ class TabelogKuchikomiSpider(RedisSpider):
                 if index == 0:
                     item['kuchikomi_id'] = sel_contents.css('div.rvw-item__review-contents::attr("id")').extract_first()
                     item['review_date'] = sel_contents.css('div.rvw-item__single-date p::text').re_first(r'\S+')
-                    item['review_title'] = self.format_list(sel_contents.css('p.rvw-item__title strong::text').get(default='').strip())
+                    item['review_title'] = self.format_list(sel_contents.css('p.rvw-item__title strong::text').get(default='null').strip())
                     item['review_comment'] = self.format_list(sel_contents.css('div.rvw-item__rvw-comment p::text').extract())
                     review_liked_filter = sel_contents.css('div.rvw-item__contents-footer div.js-like-source::text').extract_first()
                     item['review_liked'] = json.loads(review_liked_filter)['count']
@@ -92,4 +92,4 @@ class TabelogKuchikomiSpider(RedisSpider):
     @staticmethod
     def format_list(text_list):
         formatted_text = re.sub(r'\s+', '', ''.join(text_list)) if len(text_list) > 0 else 'null'
-        return formatted_text
+        return formatted_text if formatted_text.strip() else 'null'
