@@ -14,8 +14,8 @@ import configparser
 
 # Config file path
 path_dir = os.path.dirname(__file__)
-configFilePath = '/home/crawler/conf/config.cfg'
-# configFilePath = os.path.join(path_dir, '../../conf/config.cfg')
+configFilePath = '/home/crawler/conf/docker_config.cfg'
+# configFilePath = os.path.join(path_dir, '../../conf/local_config.cfg')
 config = configparser.RawConfigParser()
 
 try:
