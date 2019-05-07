@@ -4,6 +4,7 @@ from math import ceil
 from scrapy_redis.spiders import RedisSpider
 from scrapy.http.request.form import FormRequest
 from kuchikomi.items.tabelog_items import UserTabelogItem
+from scrapy.utils.project import get_project_settings
 
 
 class TabelogUserSpider(RedisSpider):
@@ -14,7 +15,7 @@ class TabelogUserSpider(RedisSpider):
     custom_settings = {
         "DOWNLOADER_MIDDLEWARES": {
             "kuchikomi.header_middleware.HeaderMiddleware": 1,
-            'kuchikomi.proxy_middlewares.ProxyMiddleware': 2,
+            # 'kuchikomi.proxy_middlewares.ProxyMiddleware': 2,
         },
         "DOWNLOAD_DELAY"          : .5,
         "RANDOMIZE_DOWNLOAD_DELAY": True
@@ -24,7 +25,7 @@ class TabelogUserSpider(RedisSpider):
     def parse(self, response):
         total_kuchikomi = response.css('span:last-child.c-page-count__num>strong::text').extract_first()
         number_of_pages = ceil(int(total_kuchikomi) / 20)
-        for page in range(1, number_of_pages+1):
+        for page in range(1, int(number_of_pages+1)):
             target_url = response.url + "?PG=" + str(page)
             yield FormRequest(target_url, method='GET', meta=response.meta, callback=self.parse_detail)
 

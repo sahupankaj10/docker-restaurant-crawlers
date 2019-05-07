@@ -6,12 +6,14 @@ import scrapy
 from math import ceil
 from time import strftime
 from scrapy.http.request.form import FormRequest
+from scrapy.utils.project import get_project_settings
 
 
 class TabelogTargetUrlSpider(scrapy.Spider):
     start_urls = ['https://tabelog.com/sitemap/']
     domain = 'https://tabelog.com'
-    redis_db = redis.StrictRedis(host="localhost", port=6379, db=0)
+    redis_db = redis.StrictRedis(host=get_project_settings().get("REDIS_HOST"),
+                                 port=get_project_settings().get("REDIS_PORT"), db=0)
 
     name = "tabelog_target_urls_via_sitemap"
     redis_key_user = "tabelog_user"

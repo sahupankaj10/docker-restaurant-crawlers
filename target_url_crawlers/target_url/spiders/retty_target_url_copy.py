@@ -3,11 +3,13 @@ import re
 import redis
 import scrapy
 from scrapy.http.request.form import FormRequest
-
+from scrapy.utils.project import get_project_settings
 
 class RettyTargetUrlSpider(scrapy.Spider):
     start_urls = ['http://retty.me/']
-    redis_db = redis.StrictRedis(host="localhost", port=6379, db=0)
+    redis_db = redis.StrictRedis(host=get_project_settings().get("REDIS_HOST"),
+                                 port=get_project_settings().get("REDIS_PORT"), db=0)
+
     custom_settings = {
         "DOWNLOADER_MIDDLEWARES": {
             'target_url.selenium_middleware.SeleniumMiddleware': 200,

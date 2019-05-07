@@ -1,13 +1,15 @@
 import re
-import redis
 import scrapy
+import redis
+from scrapy.utils.project import get_project_settings
 
 
 class TripadvisorTargetUrlSpider(scrapy.Spider):
     level_code = "294232"
     base_url = "https://www.tripadvisor.jp"
     start_urls = ["https://www.tripadvisor.jp/Restaurants-g294232-Japan.html"]
-    redis_db = redis.StrictRedis(host="localhost", port=6379, db=0)
+    redis_db = redis.StrictRedis(host=get_project_settings().get("REDIS_HOST"),
+                                 port=get_project_settings().get("REDIS_PORT"), db=0)
 
     name = "tripadvisor_target_urls"
     redis_key_kuchikomi = "tripadvisor_kuchikomi"

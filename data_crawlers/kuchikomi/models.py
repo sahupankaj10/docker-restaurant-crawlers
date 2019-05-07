@@ -36,7 +36,7 @@ class RettyKuchikomiDB(DeclarativeBase):
     num_of_likes    = Column('いいね件数', String(10), comment="num_of_likes", nullable=True, default='null')
     num_of_interested = Column('行きたい件数', String(10), comment="num_of_interested", nullable=True, default='null')
     # composite unique constraint.
-    UniqueConstraint(kuchikomi_id, restaurant_id, name="unique_key")
+    UniqueConstraint(kuchikomi_id, restaurant_id, name="unique_key_rettyk")
 
 
 class RettyFacilityDB(DeclarativeBase):
@@ -87,7 +87,7 @@ class RettyFacilityDB(DeclarativeBase):
     banquet_capacity= Column('宴会収容人数', String(20), comment="banquet_capacity", nullable=True, default='null')
     party_correspondence = Column('ウェディング・二次会対応', Text, comment="party_correspondence", nullable=True, default='null')
     # composite unique constraint.
-    UniqueConstraint(url_pre, url_area, url_sub, restaurant_id, name="unique_key")
+    UniqueConstraint(url_pre, url_area, url_sub, restaurant_id, name="unique_key_rettyf")
 
 
 class TripAdvisorKuchikomiDB(DeclarativeBase):
@@ -114,7 +114,7 @@ class TripAdvisorKuchikomiDB(DeclarativeBase):
     atmosphere_score    = Column('雰囲気', String(10), comment="atmosphere_score", nullable=True, default='null')
     post_useful         = Column('役にたった', String(10), comment="post_useful", nullable=True, default='null')
     # composite unique constraint.
-    UniqueConstraint(area_id, facility_id, review_id, name="unique_key")
+    UniqueConstraint(area_id, facility_id, review_id, name="unique_key_tak")
 
 
 class TripAdvisorFacilityDB(DeclarativeBase):
@@ -153,16 +153,16 @@ class TripAdvisorFacilityDB(DeclarativeBase):
     average_score       = Column('普通', String(10), comment="average_score", nullable=True, default='null')
     bad_score           = Column('悪い', String(10), comment="bad_score", nullable=True, default='null')
     very_bad_score      = Column('とても悪い', String(10), comment="very_bad_score", nullable=True, default='null')
-    reviews_in_english  = Column('言語英語', Integer, comment="reviews_in_english", nullable=True, default='null')
-    reviews_in_japanese = Column('言語日本語', Integer, comment="reviews_in_japanese", nullable=True, default='null')
+    reviews_in_english  = Column('言語英語', Integer, comment="reviews_in_english", nullable=True, default='0')
+    reviews_in_japanese = Column('言語日本語', Integer, comment="reviews_in_japanese", nullable=True, default='0')
     details                  = Column('詳細', Text, comment="details", nullable=True, default='null')
-    travelers_type_family    = Column('ファミリー', Integer, comment="travelers_type_family", nullable=True, default='null')
-    travelers_type_couple    = Column('カップル夫婦', Integer, comment="travelers_type_couple", nullable=True, default='null')
-    travelers_type_solo      = Column('一人', Integer, comment="travelers_type_solo", nullable=True, default='null')
-    travelers_type__business = Column('出張ビジネス', Integer, comment="travelers_type__business", nullable=True, default='null')
-    travelers_type_friend    = Column('旅行者タイプ', Integer, comment="travelers_type_friend", nullable=True, default='null')
+    travelers_type_family    = Column('ファミリー', Integer, comment="travelers_type_family", nullable=True, default='0')
+    travelers_type_couple    = Column('カップル夫婦', Integer, comment="travelers_type_couple", nullable=True, default='0')
+    travelers_type_solo      = Column('一人', Integer, comment="travelers_type_solo", nullable=True, default='0')
+    travelers_type__business = Column('出張ビジネス', Integer, comment="travelers_type__business", nullable=True, default='0')
+    travelers_type_friend    = Column('旅行者タイプ', Integer, comment="travelers_type_friend", nullable=True, default='0')
     # composite unique constraint.
-    UniqueConstraint(url_area, area_id, facility_id, name="unique_key")
+    UniqueConstraint(url_area, area_id, facility_id, name="unique_key_taf")
 
 
 class TabelogUserDB(DeclarativeBase):
@@ -190,7 +190,7 @@ class TabelogUserDB(DeclarativeBase):
     day_amount              = Column('(昼)使った金額（1人）', String(50), comment="day_amount", nullable=True, default='null')
     number_of_visit         = Column('来店数', String(20), comment="number_of_visit", nullable=True, default='null')
     # composite unique constraint.
-    UniqueConstraint(hotel_id, kuchikomi_id, customer_name, customer_id, name="unique_key")
+    UniqueConstraint(hotel_id, kuchikomi_id, customer_name, customer_id, name="unique_key_tbu")
 
 
 class TabelogKuchikomiDB(DeclarativeBase):
@@ -221,7 +221,7 @@ class TabelogKuchikomiDB(DeclarativeBase):
     review_comment      = Column('クチコミ詳細', Text, comment="review_comment")
     review_liked        = Column('いいね件数', String(50), comment="review_liked", nullable=True, default='null')
     # composite unique constraint.
-    UniqueConstraint(hotel_id, kuchikomi_id, customer_name, customer_id, review_date, name="unique_key")
+    UniqueConstraint(hotel_id, kuchikomi_id, customer_name, customer_id, review_date, name="unique_key_tbk")
 
 
 class TabelogFacilityDB(DeclarativeBase):
@@ -283,6 +283,6 @@ class TabelogFacilityDB(DeclarativeBase):
     remarks                 = Column('備考', Text, comment="remarks", nullable=True, default='null')
     original_contributor    = Column('初投稿者', String(50), comment="original_contributor", nullable=True, default='null')
     # composite unique constraint.
-    UniqueConstraint(url_pre, url_area1, url_area2, hotel_id, name="unique_key")
+    UniqueConstraint(url_pre, url_area1, url_area2, hotel_id, name="unique_key_tbf")
 
 

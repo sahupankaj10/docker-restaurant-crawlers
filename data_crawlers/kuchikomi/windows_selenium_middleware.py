@@ -1,12 +1,8 @@
-from shutil import which
-
-from pyvirtualdisplay import Display
-from scrapy import signals
 from scrapy.http import HtmlResponse
+from scrapy.utils.python import to_bytes
 from selenium import webdriver
-from selenium.webdriver.firefox.firefox_binary import FirefoxBinary
-
-HEADLESS = True
+from scrapy import signals
+from selenium.webdriver.chrome.options import Options
 
 
 class SeleniumMiddleware(object):
@@ -19,19 +15,17 @@ class SeleniumMiddleware(object):
         return middleware
 
     def process_request(self, request, spider):
+        request.meta['driver'] = self.driver  # to access driver from response
         self.driver.get(request.url)
-        request.meta['driver'] = self.driver
-        body = str.encode(self.driver.page_source)
+        body = to_bytes(self.driver.page_source)  # body must be of type bytes
         return HtmlResponse(self.driver.current_url, body=body, encoding='utf-8', request=request)
 
     def spider_opened(self, spider):
-        if HEADLESS:
-            self.display = Display(visible=0, size=(1280, 1024))
-            self.display.start()
-        binary = FirefoxBinary(which('firefox'))
-        self.driver = webdriver.Firefox(firefox_binary=binary)
+        self.driver = webdriver.Firefox()
+        # chrome_options = Options()
+        # chrome_options.add_argument('--headless')
+        # # chrome_options.add_argument('--disable-gpu')
+        # self.driver = webdriver.Chrome(chrome_options=chrome_options)
 
     def spider_closed(self, spider):
         self.driver.close()
-        if HEADLESS:
-            self.display.stop()

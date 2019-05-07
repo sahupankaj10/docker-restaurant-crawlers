@@ -3,10 +3,11 @@ import re
 import requests
 import redis
 from bs4 import BeautifulSoup
-
+from scrapy.utils.project import get_project_settings
 
 class RettyTargetUrlSpider(object):
-    redis_db = redis.StrictRedis(host="localhost", port=6379, db=0)
+    redis_db = redis.StrictRedis(host=get_project_settings().get("REDIS_HOST"),
+                                 port=get_project_settings().get("REDIS_PORT"), db=0)
 
     name = "retty_target_urls"
     redis_key_kuchikomi = "retty_kuchikomi"
@@ -18,7 +19,7 @@ class RettyTargetUrlSpider(object):
         soup = BeautifulSoup(htm.text, "html.parser")
 
         area_urls = []
-        number_of_pref = 47
+        number_of_pref = 1 # 47
         for pref in range(1, number_of_pref+1):
             pref = str(pref) if len(str(pref)) > 1 else '0' + str(pref)
             soup_area = soup.find("section", {"key": "PRE" + pref}).get(":children")
@@ -48,6 +49,7 @@ class RettyTargetUrlSpider(object):
 
         sub_area_pages_urls = []
         number_of_pages = soup_sub_area_paginate.findAll("li", class_="pager__item")[-1].text
+        # number_of_pages = 1
 
         for page in range(1, int(number_of_pages) + 1):
             if page == 1:

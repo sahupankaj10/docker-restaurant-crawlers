@@ -20,7 +20,7 @@ class RettyKuchikomiSpider(RedisSpider):
         total_kuchikomi = response.css('p.restaurant-detail__listing-info::text').re_first('(?<=全)(\d+)')
         if total_kuchikomi is not None:
             number_of_pages = ceil(int(total_kuchikomi) / 20)
-            for page in range(1, number_of_pages+1):
+            for page in range(1, int(number_of_pages+1)):
                 target_url = response.url + "page-{}/" .format(str(page))
                 yield FormRequest(target_url, method='GET', meta=response.meta, callback=self.parse_detail)
 

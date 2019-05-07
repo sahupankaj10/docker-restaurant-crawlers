@@ -1,7 +1,13 @@
-from scrapy.http import HtmlResponse
-from scrapy.utils.python import to_bytes
-from selenium import webdriver
+from shutil import which
+
+from pyvirtualdisplay import Display
 from scrapy import signals
+from scrapy.http import HtmlResponse
+from selenium import webdriver
+from selenium.webdriver.firefox.firefox_binary import FirefoxBinary
+
+
+HEADLESS = True
 
 
 class SeleniumMiddleware(object):
@@ -14,13 +20,19 @@ class SeleniumMiddleware(object):
         return middleware
 
     def process_request(self, request, spider):
-        request.meta['driver'] = self.driver  # to access driver from response
         self.driver.get(request.url)
-        body = to_bytes(self.driver.page_source)  # body must be of type bytes
+        request.meta['driver'] = self.driver
+        body = str.encode(self.driver.page_source)
         return HtmlResponse(self.driver.current_url, body=body, encoding='utf-8', request=request)
 
     def spider_opened(self, spider):
-        self.driver = webdriver.Firefox()
+        if HEADLESS:
+            self.display = Display(visible=0, size=(1280, 1024))
+            self.display.start()
+        binary = FirefoxBinary(which('firefox'))
+        self.driver = webdriver.Firefox(firefox_binary=binary)
 
     def spider_closed(self, spider):
         self.driver.close()
+        if HEADLESS:
+            self.display.stop()
